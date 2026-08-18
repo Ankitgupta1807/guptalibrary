@@ -1,0 +1,1072 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Gupta Library - Admin Portal (Sasamusa, Gopalganj, Bihar - 841505)</title>
+  <meta name="description" content="Official Admin Management Portal for Gupta Library, Sasamusa, Gopalganj, Bihar - 841505. Secure student admissions, seating management, and fee collection audit logs.">
+  
+  <!-- Google Fonts: Plus Jakarta Sans & Inter -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+
+  <!-- Core App Styles -->
+  <link rel="stylesheet" href="css/main.css">
+  <link rel="stylesheet" href="css/components.css">
+  <link rel="stylesheet" href="css/print.css">
+
+  <!-- Supabase JS Client CDN -->
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+</head>
+<body>
+
+<div id="app-root">
+
+  <!-- ========================================================================
+       1. DEDICATED ADMIN LOGIN SCREEN (NO PUBLIC SIGNUP)
+       ======================================================================== -->
+  <div id="view-login" style="display: flex;">
+    <div class="login-card">
+      <div class="login-brand-header">
+        <div class="login-brand-icon">GL</div>
+        <h1 class="login-title app-brand-name">Gupta Library</h1>
+        <p class="login-subtitle app-brand-address">Sasamusa, Gopalganj, Bihar - 841505</p>
+        <span class="login-badge">🛡️ Admin Portal Authentication</span>
+      </div>
+
+      <div id="login-error-alert" class="login-error-box"></div>
+
+      <form id="form-admin-login">
+        <div class="form-group" style="margin-bottom: 1.1rem;">
+          <label class="form-label" for="login-email">Admin Email Address</label>
+          <input type="email" id="login-email" class="form-input" required placeholder="admin@guptalibrary.com" autocomplete="email" style="padding: 0.75rem 1rem;">
+        </div>
+
+        <div class="form-group" style="margin-bottom: 1.5rem;">
+          <label class="form-label" for="login-password">Master Password</label>
+          <input type="password" id="login-password" class="form-input" required placeholder="••••••••••••" autocomplete="current-password" style="padding: 0.75rem 1rem;">
+        </div>
+
+        <button type="submit" id="btn-login-submit" class="btn btn-primary" style="width: 100%; padding: 0.8rem; font-size: 0.95rem;">
+          Sign In to Admin Portal
+        </button>
+      </form>
+
+      <div class="login-footer-note">
+        🔒 <strong>Secure Administration Only</strong><br>
+        Access to student records, seat allocation, and fee collection is strictly restricted to authorized library personnel.
+      </div>
+    </div>
+  </div>
+
+  <!-- ========================================================================
+       2. PROTECTED ADMIN DASHBOARD SHELL (SHOWN ONLY TO LOGGED-IN ADMINS)
+       ======================================================================== -->
+  <div id="app-shell" style="display: none; width: 100%; min-height: 100vh;">
+    <!-- Sidebar Navigation -->
+    <aside class="app-sidebar">
+      <div class="sidebar-header">
+        <div class="brand-icon">GL</div>
+        <div class="brand-details">
+          <div class="brand-name app-brand-name">Gupta Library</div>
+          <div class="brand-location app-brand-address">Sasamusa, Gopalganj</div>
+        </div>
+      </div>
+
+      <nav class="sidebar-nav">
+        <div class="nav-section-title">Operations</div>
+        <a href="#dashboard" class="nav-item active" data-view="dashboard">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor"><rect width="7" height="9" x="3" y="3" rx="1"/><rect width="7" height="5" x="14" y="3" rx="1"/><rect width="7" height="9" x="14" y="12" rx="1"/><rect width="7" height="5" x="3" y="16" rx="1"/></svg>
+          <span>Dashboard Overview</span>
+        </a>
+        <a href="#members" class="nav-item" data-view="members">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor"><path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M22 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>
+          <span>All Students</span>
+        </a>
+        <a href="#seats" class="nav-item" data-view="seats">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor"><path d="M19 9V6a2 2 0 0 0-2-2H7a2 2 0 0 0-2 2v3"/><path d="M3 11v5a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-5a2 2 0 0 0-4 0v2H7v-2a2 2 0 0 0-4 0Z"/><path d="M5 18v3"/><path d="M19 18v3"/></svg>
+          <span>Seat Matrix & Shifts</span>
+          <span class="badge" id="sidebar-seat-count">94 Desks</span>
+        </a>
+        <a href="#fees" class="nav-item" data-view="fees">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor"><rect width="20" height="14" x="2" y="5" rx="2"/><line x1="2" x2="22" y1="10" y2="10"/></svg>
+          <span>Fee Collections & Audit</span>
+        </a>
+
+        <div class="nav-section-title">Administration & Control</div>
+        <a href="#reports" class="nav-item" data-view="reports">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor"><path d="M3 3v18h18"/><path d="m19 9-5 5-4-4-3 3"/></svg>
+          <span>Reports & Dues</span>
+        </a>
+        <a href="#admins" class="nav-item" data-view="admins">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/><circle cx="12" cy="11" r="3"/></svg>
+          <span>Admin Team & Create</span>
+        </a>
+        <a href="#settings" class="nav-item" data-view="settings">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor"><path d="M12.22 2h-.44a2 2 0 0 0-2 2v.18a2 2 0 0 1-1 1.73l-.43.25a2 2 0 0 1-2 0l-.15-.08a2 2 0 0 0-2.73.73l-.22.38a2 2 0 0 0 .73 2.73l.15.1a2 2 0 0 1 1 1.72v.51a2 2 0 0 1-1 1.74l-.15.09a2 2 0 0 0-.73 2.73l.22.38a2 2 0 0 0 2.73.73l.15-.08a2 2 0 0 1 2 0l.43.25a2 2 0 0 1 1 1.73V20a2 2 0 0 0 2 2h.44a2 2 0 0 0 2-2v-.18a2 2 0 0 1 1-1.73l.43-.25a2 2 0 0 1 2 0l.15.08a2 2 0 0 0 2.73-.73l.22-.39a2 2 0 0 0-.73-2.73l-.15-.08a2 2 0 0 1-1-1.74v-.5a2 2 0 0 1 1-1.74l.15-.09a2 2 0 0 0 .73-2.73l-.22-.38a2 2 0 0 0-2.73-.73l-.15.08a2 2 0 0 1-2 0l-.43-.25a2 2 0 0 1-1-1.73V4a2 2 0 0 0-2-2z"/><circle cx="12" cy="12" r="3"/></svg>
+          <span>Library Settings & DB</span>
+        </a>
+      </nav>
+
+      <div class="sidebar-footer">
+        <button class="btn btn-secondary btn-sm btn-admin-logout" style="width: 100%; color: var(--danger-dark); border-color: rgba(239,68,68,0.25); display: flex; align-items: center; justify-content: center; gap: 0.5rem;">
+          <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" x2="9" y1="12" y2="12"/></svg>
+          Sign Out Admin
+        </button>
+      </div>
+    </aside>
+
+    <!-- Mobile Sidebar Backdrop Overlay -->
+    <div id="sidebar-overlay" class="sidebar-overlay"></div>
+
+    <!-- Main Content Shell -->
+    <div class="app-main">
+      <!-- Top Header -->
+      <header class="app-header">
+        <div class="header-left">
+          <button id="mobile-menu-btn" class="mobile-menu-toggle" aria-label="Toggle Menu">
+            <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="4" x2="20" y1="12" y2="12"/><line x1="4" x2="20" y1="6" y2="6"/><line x1="4" x2="20" y1="18" y2="18"/></svg>
+          </button>
+
+          <div class="header-search">
+            <svg class="search-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.3-4.3"/></svg>
+            <input type="text" class="global-search-trigger" placeholder="Search student, admission ID, receipt, or seat..." readonly>
+            <kbd class="search-kbd">Ctrl+K</kbd>
+          </div>
+        </div>
+
+        <div class="header-right">
+          <!-- Mobile Quick Search Trigger Button -->
+          <button class="header-btn-icon global-search-trigger mobile-search-btn" title="Quick Search">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.3-4.3"/></svg>
+          </button>
+
+          <!-- Live Shift Indicator -->
+          <div id="current-shift-pill" class="shift-status-pill">
+            <span class="status-dot"></span>
+            <span>Morning Shift (06:00 AM - 12:00 PM)</span>
+          </div>
+
+          <!-- Theme Toggle -->
+          <button id="theme-toggle-btn" class="header-btn-icon" title="Toggle Dark/Light Mode">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="4"/><path d="M12 2v2"/><path d="M12 20v2"/><path d="m4.93 4.93 1.41 1.41"/><path d="m17.66 17.66 1.41 1.41"/><path d="M2 12h2"/><path d="M20 12h2"/><path d="m6.34 17.66-1.41 1.41"/><path d="m19.07 4.93-1.41 1.41"/></svg>
+          </button>
+
+          <!-- Quick Action: Take New Admission -->
+          <button class="btn btn-primary btn-sm" onclick="MemberManager.openNewMemberModal()">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="12" x2="12" y1="5" y2="19"/><line x1="5" x2="19" y1="12" y2="12"/></svg>
+            Take Admission
+          </button>
+
+          <!-- Admin Profile Pill with Logout -->
+          <div class="admin-profile-pill" onclick="App.switchView('admins')">
+            <div class="admin-avatar">GL</div>
+            <div class="admin-info">
+              <div class="admin-name app-brand-name">Gupta Library Admin</div>
+              <div class="admin-role app-brand-email">guptalibraryy</div>
+            </div>
+          </div>
+
+          <button class="btn btn-secondary btn-sm btn-admin-logout" title="Sign Out">
+            <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" x2="9" y1="12" y2="12"/></svg>
+          </button>
+        </div>
+      </header>
+
+      <!-- Dynamic Viewport -->
+      <main class="app-content">
+
+        <!-- 1. DASHBOARD VIEW -->
+        <section id="view-dashboard" class="view-container active">
+          <div class="page-header">
+            <div class="page-title-block">
+              <h1>Admin Dashboard Overview</h1>
+              <p>Welcome to <strong class="app-brand-name">Gupta Library</strong> &bull; <span class="app-brand-address">Sasamusa, Gopalganj, Bihar - 841505</span></p>
+            </div>
+            <div class="page-actions">
+              <button class="btn btn-secondary" onclick="FeeManager.openCollectFeeModal()">
+                <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor"><rect width="20" height="14" x="2" y="5" rx="2"/><line x1="2" x2="22" y1="10" y2="10"/></svg>
+                Collect Fee
+              </button>
+              <button class="btn btn-primary" onclick="MemberManager.openNewMemberModal()">
+                <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor"><line x1="12" x2="12" y1="5" y2="19"/><line x1="5" x2="19" y1="12" y2="12"/></svg>
+                + Take New Admission
+              </button>
+            </div>
+          </div>
+
+          <!-- Metric Stat Cards -->
+          <div class="stats-grid">
+            <div class="stat-card">
+              <div class="stat-card-header">
+                <span class="stat-title">Active Students</span>
+                <div class="stat-icon-wrap indigo">
+                  <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor"><path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/></svg>
+                </div>
+              </div>
+              <div class="stat-value" id="stat-active-members">8</div>
+              <div class="stat-subtitle">
+                <span class="stat-trend-up">100% Verified</span> &bull; Sasamusa Branch
+              </div>
+            </div>
+
+            <div class="stat-card">
+              <div class="stat-card-header">
+                <span class="stat-title">Seat Occupancy</span>
+                <div class="stat-icon-wrap emerald">
+                  <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor"><path d="M19 9V6a2 2 0 0 0-2-2H7a2 2 0 0 0-2 2v3"/><path d="M3 11v5a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-5a2 2 0 0 0-4 0v2H7v-2a2 2 0 0 0-4 0Z"/></svg>
+                </div>
+              </div>
+              <div class="stat-value" id="stat-occupied-seats">6 / 44</div>
+              <div class="stat-subtitle">
+                <span style="color: var(--success); font-weight:600;">38 Available</span> across 2 AC Halls
+              </div>
+            </div>
+
+            <div class="stat-card">
+              <div class="stat-card-header">
+                <span class="stat-title">Total Fee Collections</span>
+                <div class="stat-icon-wrap amber">
+                  <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor"><rect width="20" height="14" x="2" y="5" rx="2"/><line x1="2" x2="22" y1="10" y2="10"/></svg>
+                </div>
+              </div>
+              <div class="stat-value" id="stat-total-revenue">₹3,900</div>
+              <div class="stat-subtitle">
+                <span class="stat-trend-up">Audited Collections</span> &bull; Auto PDF Receipts
+              </div>
+            </div>
+
+            <div class="stat-card">
+              <div class="stat-card-header">
+                <span class="stat-title">Pending Fee Dues</span>
+                <div class="stat-icon-wrap rose">
+                  <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor"><circle cx="12" cy="12" r="10"/><line x1="12" x2="12" y1="8" y2="12"/><line x1="12" x2="12.01" y1="16" y2="16"/></svg>
+                </div>
+              </div>
+              <div class="stat-value" id="stat-pending-dues">₹1,000</div>
+              <div class="stat-subtitle">
+                <span class="stat-trend-down">2 Students Pending</span> &bull; Click to Remind
+              </div>
+            </div>
+          </div>
+
+          <!-- 2 Column Layout: Quick Seat Matrix & Recent Fee Audit Activity -->
+          <div class="dashboard-grid">
+            <div class="content-panel">
+              <div class="panel-header">
+                <div>
+                  <h3 class="panel-title">
+                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor"><path d="M19 9V6a2 2 0 0 0-2-2H7a2 2 0 0 0-2 2v3"/><path d="M3 11v5a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-5a2 2 0 0 0-4 0v2H7v-2a2 2 0 0 0-4 0Z"/></svg>
+                    Shift Capacity & Floor Utilization
+                  </h3>
+                  <div class="panel-subtitle">Real-time seat allocations in Ground Floor (44 Seats) and First Floor (50 Seats)</div>
+                </div>
+                <button class="btn btn-secondary btn-sm" onclick="App.switchView('seats')">View Floor Grid &rarr;</button>
+              </div>
+              <div id="shift-analytics-bars" style="margin-top: 1rem;"></div>
+            </div>
+
+            <div class="content-panel">
+              <div class="panel-header">
+                <div>
+                  <h3 class="panel-title">
+                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor"><path d="M6 2h12a2 2 0 0 1 2 2v16l-4-2-4 2-4-2-4 2V4a2 2 0 0 1 2-2z"/></svg>
+                    Recent Fee Collections (Who & Method)
+                  </h3>
+                  <div class="panel-subtitle">Logged payments with admin collector name</div>
+                </div>
+                <button class="btn btn-secondary btn-sm" onclick="App.switchView('fees')">All Collections &rarr;</button>
+              </div>
+              <div id="dashboard-recent-activity"></div>
+            </div>
+          </div>
+        </section>
+
+        <!-- 2. STUDENTS DIRECTORY & MANAGEMENT VIEW -->
+        <section id="view-members" class="view-container">
+          <div class="page-header">
+            <div class="page-title-block">
+              <h1>All Students & Admissions</h1>
+              <p>Search, manage admission details, edit profiles, and issue digital ID cards</p>
+            </div>
+            <div class="page-actions">
+              <button class="btn btn-secondary" onclick="ReportsManager.exportCSV('members')">
+                <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" x2="12" y1="15" y2="3"/></svg>
+                Export CSV
+              </button>
+              <button class="btn btn-primary" onclick="MemberManager.openNewMemberModal()">
+                <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor"><line x1="12" x2="12" y1="5" y2="19"/><line x1="5" x2="19" y1="12" y2="12"/></svg>
+                + Take New Admission
+              </button>
+            </div>
+          </div>
+
+          <div class="content-panel">
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1.25rem; flex-wrap: wrap; gap: 0.75rem;">
+              <div style="display: flex; gap: 0.75rem; flex: 1; max-width: 480px;">
+                <input type="text" id="member-search-input" class="form-input" placeholder="Search by name, phone number, admission ID, or desk..." style="width: 100%;">
+              </div>
+              <div style="display: flex; gap: 0.75rem; align-items: center;">
+                <select id="member-status-filter" class="form-select" style="min-width: 140px;">
+                  <option value="all">All Statuses</option>
+                  <option value="active">Active Students</option>
+                  <option value="due">Fees Due</option>
+                </select>
+                <span id="member-count-badge" class="badge" style="padding: 0.45rem 0.8rem; background: var(--bg-subtle); color: var(--text-main); font-weight: 700; border-radius: var(--radius-md);">8 Students</span>
+              </div>
+            </div>
+
+            <div class="data-table-container">
+              <table class="data-table">
+                <thead>
+                  <tr>
+                    <th>Student / Admission ID</th>
+                    <th>Assigned Desk</th>
+                    <th>Exam Target & Area</th>
+                    <th>Fee Plan</th>
+                    <th>Status</th>
+                    <th>Valid Upto</th>
+                    <th style="text-align: right;">Manage</th>
+                  </tr>
+                </thead>
+                <tbody id="members-table-body"></tbody>
+              </table>
+            </div>
+          </div>
+        </section>
+
+        <!-- 3. SEAT MATRIX & SHIFTS VIEW -->
+        <section id="view-seats" class="view-container">
+          <div class="page-header">
+            <div class="page-title-block">
+              <h1>Seat Matrix & Study Desks</h1>
+              <p>Real-time visual seat allocation for <strong class="app-brand-name">Gupta Library</strong></p>
+            </div>
+            <div class="page-actions">
+              <div class="form-group" style="margin-bottom:0; min-width: 180px;">
+                <select id="seat-shift-filter" class="form-select">
+                  <option value="all">All Desks & Shifts</option>
+                  <option value="vacant">Only Vacant Desks</option>
+                  <option value="morning">Morning (6 AM - 12 PM)</option>
+                  <option value="afternoon">Afternoon (12 PM - 6 PM)</option>
+                  <option value="evening">Evening (4 PM - 10 PM)</option>
+                  <option value="full">Full Day Reserved</option>
+                  <option value="maintenance">Maintenance</option>
+                </select>
+              </div>
+            </div>
+          </div>
+
+          <div class="seat-matrix-wrapper">
+            <div class="seat-filters-bar">
+              <div class="hall-tabs">
+                <button class="hall-tab-btn active" data-hall="Ground Floor">Ground Floor (44 Seats - G1 to G44)</button>
+                <button class="hall-tab-btn" data-hall="First Floor">First Floor (50 Seats - A1 to A50)</button>
+              </div>
+
+              <div id="hall-seat-stats" style="font-size: 0.85rem; color: var(--text-muted);"></div>
+
+              <div class="seat-legend">
+                <div class="legend-item"><span class="legend-dot vacant"></span> Vacant</div>
+                <div class="legend-item"><span class="legend-dot morning"></span> Morning</div>
+                <div class="legend-item"><span class="legend-dot afternoon"></span> Afternoon</div>
+                <div class="legend-item"><span class="legend-dot evening"></span> Evening</div>
+                <div class="legend-item"><span class="legend-dot fullday"></span> Full Day</div>
+                <div class="legend-item"><span class="legend-dot maintenance"></span> Repair</div>
+              </div>
+            </div>
+
+            <div id="seat-grid" class="seat-grid-container"></div>
+          </div>
+        </section>
+
+        <!-- 4. FEES & COLLECTION AUDIT VIEW -->
+        <section id="view-fees" class="view-container">
+          <div class="page-header">
+            <div class="page-title-block">
+              <h1>Fee Collections & Audit Logs</h1>
+              <p>Track which admin collected fees, exact timestamp, payment method (UPI / Cash / Card), and print PDF receipts</p>
+            </div>
+            <div class="page-actions">
+              <button class="btn btn-secondary" onclick="ReportsManager.exportCSV('transactions')">
+                <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" x2="12" y1="15" y2="3"/></svg>
+                Export Receipts CSV
+              </button>
+              <button class="btn btn-primary" onclick="FeeManager.openCollectFeeModal()">
+                <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor"><rect width="20" height="14" x="2" y="5" rx="2"/><line x1="2" x2="22" y1="10" y2="10"/></svg>
+                + Collect Payment
+              </button>
+            </div>
+          </div>
+
+          <div class="content-panel">
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1.25rem; flex-wrap: wrap; gap: 0.75rem;">
+              <div style="display: flex; gap: 0.75rem; flex: 1; max-width: 480px;">
+                <input type="text" id="fee-search-input" class="form-input" placeholder="Search receipt number, student name, admin collector, or method..." style="width: 100%;">
+              </div>
+              <div style="display: flex; gap: 0.75rem;">
+                <select id="fee-mode-filter" class="form-select">
+                  <option value="all">All Payment Methods</option>
+                  <option value="phonepe">PhonePe UPI</option>
+                  <option value="gpay">Google Pay UPI</option>
+                  <option value="paytm">Paytm UPI</option>
+                  <option value="upi">Other UPI / QR</option>
+                  <option value="cash">Cash at Counter</option>
+                  <option value="card">Card / Net Banking</option>
+                </select>
+              </div>
+            </div>
+
+            <div class="data-table-container">
+              <table class="data-table">
+                <thead>
+                  <tr>
+                    <th>Receipt # & Date/Time</th>
+                    <th>Student Info</th>
+                    <th>Seat & Shift</th>
+                    <th>Amount Paid</th>
+                    <th>Payment Method</th>
+                    <th>Collected By (Admin)</th>
+                    <th style="text-align: right;">Action</th>
+                  </tr>
+                </thead>
+                <tbody id="fees-table-body"></tbody>
+              </table>
+            </div>
+          </div>
+        </section>
+
+        <!-- 5. REPORTS & DUES VIEW -->
+        <section id="view-reports" class="view-container">
+          <div class="page-header">
+            <div class="page-title-block">
+              <h1>Reports & Dues Management</h1>
+              <p>Financial summary and fee defaulters list with direct WhatsApp alert reminders</p>
+            </div>
+            <div class="page-actions">
+              <button class="btn btn-secondary" onclick="ReportsManager.exportCSV('transactions')">
+                <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" x2="12" y1="15" y2="3"/></svg>
+                Export CSV Report
+              </button>
+              <button class="btn btn-primary" onclick="window.print()">
+                <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor"><polyline points="6 9 6 2 18 2 18 9"/><path d="M6 18H4a2 2 0 0 1-2-2v-5a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v5a2 2 0 0 1-2 2h-2"/><rect width="12" height="8" x="6" y="14"/></svg>
+                Print Report
+              </button>
+            </div>
+          </div>
+
+          <div class="content-panel">
+            <div class="panel-header">
+              <div>
+                <h3 class="panel-title" style="color: var(--danger-dark);">
+                  <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor"><circle cx="12" cy="12" r="10"/><line x1="12" x2="12" y1="8" y2="12"/><line x1="12" x2="12.01" y1="16" y2="16"/></svg>
+                  Pending Fee Defaulters List
+                </h3>
+                <div class="panel-subtitle">Students whose monthly subscription is due for renewal</div>
+              </div>
+              <span id="defaulters-count-badge" class="status-pill overdue">2 Students Pending</span>
+            </div>
+
+            <div class="data-table-container">
+              <table class="data-table">
+                <thead>
+                  <tr>
+                    <th>Student Name & ID</th>
+                    <th>Phone</th>
+                    <th>Seat / Shift</th>
+                    <th>Due Amount</th>
+                    <th>Status</th>
+                    <th style="text-align: right;">Action / Reminder</th>
+                  </tr>
+                </thead>
+                <tbody id="defaulters-table-body"></tbody>
+              </table>
+            </div>
+          </div>
+        </section>
+
+        <!-- 6. ADMIN TEAM & CREATE ADMIN VIEW -->
+        <section id="view-admins" class="view-container">
+          <div class="page-header">
+            <div class="page-title-block">
+              <h1>Admin Team & Access Management</h1>
+              <p>Authorize new administrators and manage library staff permissions</p>
+            </div>
+          </div>
+
+          <div class="dashboard-grid">
+            <!-- Create New Admin Form -->
+            <div class="content-panel">
+              <div class="panel-header">
+                <div>
+                  <h3 class="panel-title" style="color: var(--primary);">
+                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor"><path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><line x1="19" x2="19" y1="8" y2="14"/><line x1="22" x2="16" y1="11" y2="11"/></svg>
+                    Create New Admin
+                  </h3>
+                  <div class="panel-subtitle">Grant administrative access to library staff</div>
+                </div>
+              </div>
+
+              <form id="form-create-admin">
+                <div class="form-group">
+                  <label class="form-label" for="new-admin-name">Full Name *</label>
+                  <input type="text" id="new-admin-name" class="form-input" required placeholder="e.g. Ramesh Kumar">
+                </div>
+
+                <div class="form-group">
+                  <label class="form-label" for="new-admin-email">Admin Email Address *</label>
+                  <input type="email" id="new-admin-email" class="form-input" required placeholder="admin.new@guptalibrary.com">
+                </div>
+
+                <div class="form-grid">
+                  <div class="form-group">
+                    <label class="form-label" for="new-admin-password">Password (Min 6 chars) *</label>
+                    <input type="password" id="new-admin-password" class="form-input" required minlength="6" placeholder="••••••••">
+                  </div>
+                  <div class="form-group">
+                    <label class="form-label" for="new-admin-confirm-password">Confirm Password *</label>
+                    <input type="password" id="new-admin-confirm-password" class="form-input" required minlength="6" placeholder="••••••••">
+                  </div>
+                </div>
+
+                <div style="margin-top: 1.25rem; display: flex; justify-content: flex-end;">
+                  <button type="submit" id="btn-create-admin-submit" class="btn btn-primary">
+                    Create & Authorize Admin
+                  </button>
+                </div>
+              </form>
+            </div>
+
+            <!-- Existing Admins List -->
+            <div class="content-panel">
+              <div class="panel-header">
+                <div>
+                  <h3 class="panel-title">
+                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/><circle cx="12" cy="11" r="3"/></svg>
+                    Authorized Admins
+                  </h3>
+                  <div class="panel-subtitle">Accounts with management privileges</div>
+                </div>
+                <span id="admin-count-badge" class="badge" style="font-weight: 700; background: var(--bg-subtle);">1 Admin</span>
+              </div>
+
+              <div class="data-table-container">
+                <table class="data-table">
+                  <thead>
+                    <tr>
+                      <th>Admin Name</th>
+                      <th>Role</th>
+                      <th>Created</th>
+                      <th>Status</th>
+                    </tr>
+                  </thead>
+                  <tbody id="admins-table-body"></tbody>
+                </table>
+              </div>
+            </div>
+          </div>
+        </section>
+
+        <!-- 7. LIBRARY SETTINGS & DATABASE VIEW -->
+        <section id="view-settings" class="view-container">
+          <div class="page-header">
+            <div class="page-title-block">
+              <h1>Library Settings & Database Configuration</h1>
+              <p>Configure library profile, Sasamusa branch address, pricing, and Supabase cloud sync</p>
+            </div>
+            <div class="page-actions">
+              <div id="supabase-status-badge" class="shift-status-pill">
+                <span class="status-dot"></span>
+                <span>Checking database status...</span>
+              </div>
+            </div>
+          </div>
+
+          <div class="content-panel" style="margin-bottom: 1.75rem; border: 2px solid var(--primary-light);">
+            <div class="panel-header">
+              <div>
+                <h3 class="panel-title" style="color: var(--primary);">
+                  <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor"><ellipse cx="12" cy="5" rx="9" ry="3"/><path d="M3 5v14c0 1.66 4 3 9 3s9-1.34 9-3V5"/><path d="M3 12c0 1.66 4 3 9 3s9-1.34 9-3"/></svg>
+                  Supabase PostgreSQL Cloud Database Integration
+                </h3>
+                <div class="panel-subtitle">Connected live database for Gupta Library</div>
+              </div>
+            </div>
+
+            <form id="form-supabase-config">
+              <div class="form-grid">
+                <div class="form-group">
+                  <label class="form-label">Supabase Project URL</label>
+                  <input type="url" id="setting-supabase-url" class="form-input" placeholder="https://ynoqrhqqrifhrphonrxc.supabase.co" required>
+                </div>
+                <div class="form-group">
+                  <label class="form-label">Supabase Anon Public API Key</label>
+                  <input type="text" id="setting-supabase-key" class="form-input" placeholder="eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9..." required>
+                </div>
+              </div>
+
+              <div style="display: flex; justify-content: space-between; align-items: center; margin-top: 1rem; flex-wrap: wrap; gap: 0.75rem;">
+                <div style="font-size: 0.78rem; color: var(--text-muted);">
+                  💡 SQL schema script available in <code>supabase/schema.sql</code>.
+                </div>
+                <button type="submit" class="btn btn-primary">
+                  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor"><path d="m5 12 5 5L20 7"/></svg>
+                  Save & Re-Connect
+                </button>
+              </div>
+            </form>
+          </div>
+
+          <div class="dashboard-grid">
+            <div class="content-panel">
+              <div class="panel-header">
+                <h3 class="panel-title">Library Identity & Contact Details</h3>
+              </div>
+
+              <form id="form-library-settings">
+                <div class="form-grid">
+                  <div class="form-group">
+                    <label class="form-label">Library Name</label>
+                    <input type="text" name="name" id="setting-lib-name" class="form-input" required value="Gupta Library">
+                  </div>
+
+                  <div class="form-group">
+                    <label class="form-label">Library Email</label>
+                    <input type="text" name="email" id="setting-lib-email" class="form-input" required value="guptalibraryy@gmail.com">
+                  </div>
+
+                  <div class="form-group full-width">
+                    <label class="form-label">Official Address</label>
+                    <input type="text" name="address" id="setting-lib-address" class="form-input" required value="Sasamusa, Gopalganj, Bihar - 841505">
+                  </div>
+
+                  <div class="form-group">
+                    <label class="form-label">Helpline / WhatsApp Phone</label>
+                    <input type="text" name="phone" id="setting-lib-phone" class="form-input" required value="+91 94312 88990">
+                  </div>
+
+                  <div class="form-group">
+                    <label class="form-label">Landmark / Area</label>
+                    <input type="text" name="landmark" id="setting-lib-landmark" class="form-input" value="Near Sasamusa High School, Main Road">
+                  </div>
+
+                  <div class="form-group">
+                    <label class="form-label">Full Day Monthly Fee (₹)</label>
+                    <input type="number" name="monthlyPlanFullDay" id="setting-fee-fullday" class="form-input" required value="800">
+                  </div>
+
+                  <div class="form-group">
+                    <label class="form-label">Single Shift Monthly Fee (₹)</label>
+                    <input type="number" name="monthlyPlanShift" id="setting-fee-shift" class="form-input" required value="500">
+                  </div>
+
+                  <div class="form-group">
+                    <label class="form-label">One-Time Admission Fee (₹)</label>
+                    <input type="number" name="admissionFee" id="setting-fee-admission" class="form-input" required value="200">
+                  </div>
+
+                  <div class="form-group full-width">
+                    <label class="form-label">Receipt Footer Note / Terms</label>
+                    <textarea name="receiptFooterNote" id="setting-receipt-note" class="form-textarea" rows="2">Thank you for choosing Gupta Library. Fees once paid are non-refundable. Maintain discipline and silence in the study hall.</textarea>
+                  </div>
+                </div>
+
+                <div style="margin-top: 1.25rem; display: flex; justify-content: flex-end;">
+                  <button type="submit" class="btn btn-primary">Save Library Settings</button>
+                </div>
+              </form>
+            </div>
+
+            <div class="content-panel">
+              <div class="panel-header">
+                <h3 class="panel-title">Offline Backup & Data Reset</h3>
+              </div>
+
+              <div style="display: flex; flex-direction: column; gap: 1.25rem;">
+                <div style="background: var(--bg-subtle); padding: 1rem; border-radius: var(--radius-md); border: 1px solid var(--border-light);">
+                  <div style="font-weight: 700; font-size: 0.9rem; margin-bottom: 0.25rem;">Export JSON Backup</div>
+                  <p style="font-size: 0.78rem; color: var(--text-muted); margin-bottom: 0.75rem;">Download all students, seat assignments, and receipts as a standalone JSON backup.</p>
+                  <button id="btn-export-backup" class="btn btn-secondary btn-sm" style="width: 100%;">
+                    Export JSON File
+                  </button>
+                </div>
+
+                <div style="background: var(--bg-subtle); padding: 1rem; border-radius: var(--radius-md); border: 1px solid var(--border-light);">
+                  <div style="font-weight: 700; font-size: 0.9rem; margin-bottom: 0.25rem;">Restore Backup File</div>
+                  <p style="font-size: 0.78rem; color: var(--text-muted); margin-bottom: 0.75rem;">Upload a previously saved JSON backup to restore state.</p>
+                  <input type="file" id="input-import-backup" accept=".json" style="font-size: 0.8rem;">
+                </div>
+
+                <div style="background: rgba(239, 68, 68, 0.05); padding: 1rem; border-radius: var(--radius-md); border: 1px solid rgba(239, 68, 68, 0.2);">
+                  <div style="font-weight: 700; font-size: 0.9rem; color: var(--danger-dark); margin-bottom: 0.25rem;">Factory Reset</div>
+                  <p style="font-size: 0.78rem; color: var(--text-muted); margin-bottom: 0.75rem;">Restore original Gupta Library demo dataset (Sasamusa, Gopalganj).</p>
+                  <button id="btn-reset-demo-data" class="btn btn-secondary btn-sm" style="color: var(--danger-dark); border-color: var(--danger-light); width: 100%;">
+                    Reset to Demo State
+                  </button>
+                </div>
+              </div>
+            </div>
+          </div>
+        </section>
+
+      </main>
+
+      <!-- Footer -->
+      <footer class="app-footer">
+        <div class="footer-content">
+          <div class="footer-left">
+            <span class="footer-brand app-brand-name">Gupta Library</span>
+            <span class="footer-divider">&bull;</span>
+            <span class="app-brand-address">Sasamusa, Gopalganj, Bihar - 841505</span>
+            <span class="footer-divider">&bull;</span>
+            <span>Email: <strong class="app-brand-email">guptalibraryy@gmail.com</strong></span>
+          </div>
+          <div class="footer-right">
+            <a href="#settings" class="footer-link" onclick="App.switchView('settings')">Settings</a>
+            <span>&copy; 2026 Gupta Library. Admin Portal.</span>
+          </div>
+        </div>
+      </footer>
+
+      <!-- Mobile Bottom Navigation Bar (Native Phone App UX) -->
+      <nav class="mobile-bottom-nav">
+        <a href="#dashboard" class="mobile-nav-item active nav-item" data-view="dashboard">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor"><rect width="7" height="9" x="3" y="3" rx="1"/><rect width="7" height="5" x="14" y="3" rx="1"/><rect width="7" height="9" x="14" y="12" rx="1"/><rect width="7" height="5" x="3" y="16" rx="1"/></svg>
+          <span>Home</span>
+        </a>
+        <a href="#members" class="mobile-nav-item nav-item" data-view="members">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor"><path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M22 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>
+          <span>Students</span>
+        </a>
+        <button class="mobile-nav-item mobile-action-btn" title="Take Admission" onclick="MemberManager.openNewMemberModal()">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="12" x2="12" y1="5" y2="19"/><line x1="5" x2="19" y1="12" y2="12"/></svg>
+        </button>
+        <a href="#seats" class="mobile-nav-item nav-item" data-view="seats">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor"><path d="M19 9V6a2 2 0 0 0-2-2H7a2 2 0 0 0-2 2v3"/><path d="M3 11v5a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-5a2 2 0 0 0-4 0v2H7v-2a2 2 0 0 0-4 0Z"/><path d="M5 18v3"/><path d="M19 18v3"/></svg>
+          <span>Seats</span>
+        </a>
+        <a href="#fees" class="mobile-nav-item nav-item" data-view="fees">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor"><rect width="20" height="14" x="2" y="5" rx="2"/><line x1="2" x2="22" y1="10" y2="10"/></svg>
+          <span>Fees</span>
+        </a>
+      </nav>
+    </div>
+  </div>
+
+</div>
+
+<!-- ==========================================================================
+     MODALS SECTION
+     ========================================================================== -->
+
+<!-- 1. Modal: Take New Admission -->
+<div id="modal-new-member" class="modal-backdrop">
+  <div class="modal-box modal-lg">
+    <div class="modal-header">
+      <h3 class="modal-title">New Student Admission - Gupta Library</h3>
+      <button class="modal-close-btn" data-close-modal="modal-new-member">&times;</button>
+    </div>
+    <form id="form-new-member">
+      <div class="modal-body">
+        <div class="form-grid">
+          <div class="form-group">
+            <label class="form-label">Full Name *</label>
+            <input type="text" name="name" class="form-input" required placeholder="e.g. Rahul Kumar">
+          </div>
+          <div class="form-group">
+            <label class="form-label">Mobile Number *</label>
+            <input type="tel" name="phone" class="form-input" required placeholder="10-digit mobile number">
+          </div>
+          <div class="form-group">
+            <label class="form-label">Email Address (Optional)</label>
+            <input type="email" name="email" class="form-input" placeholder="student@gmail.com">
+          </div>
+          <div class="form-group">
+            <label class="form-label">Target Exam / Goal</label>
+            <input type="text" name="examTarget" class="form-input" placeholder="e.g. BPSC / SSC / UPSC / Banking">
+          </div>
+          <div class="form-group full-width">
+            <label class="form-label">Residential Address</label>
+            <input type="text" name="address" class="form-input" placeholder="Village / Area, Gopalganj">
+          </div>
+          <div class="form-group">
+            <label class="form-label">Select Shift</label>
+            <select name="shift" class="form-select" id="new-member-shift">
+              <option value="Full Day (06:00 AM - 10:00 PM)">Full Day (06:00 AM - 10:00 PM) - ₹800</option>
+              <option value="Morning (06:00 AM - 12:00 PM)">Morning (06:00 AM - 12:00 PM) - ₹500</option>
+              <option value="Afternoon (12:00 PM - 06:00 PM)">Afternoon (12:00 PM - 06:00 PM) - ₹500</option>
+              <option value="Evening (04:00 PM - 10:00 PM)">Evening (04:00 PM - 10:00 PM) - ₹500</option>
+            </select>
+          </div>
+          <div class="form-group">
+            <label class="form-label">Assign Desk / Seat</label>
+            <select name="seatId" id="new-member-seat" class="form-select"></select>
+          </div>
+          <div class="form-group">
+            <label class="form-label">Monthly Subscription Fee (₹)</label>
+            <input type="number" name="monthlyFee" class="form-input" value="800" required>
+          </div>
+          <div class="form-group">
+            <label class="form-label">One-Time Admission Fee (₹)</label>
+            <input type="number" name="admissionFee" class="form-input" value="200" required>
+          </div>
+          <div class="form-group full-width">
+            <label class="form-label">Joining Date</label>
+            <input type="date" name="joiningDate" class="form-input" value="2026-08-18">
+          </div>
+        </div>
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-secondary" data-close-modal="modal-new-member">Cancel</button>
+        <button type="submit" class="btn btn-primary">Complete Admission & Print Receipt</button>
+      </div>
+    </form>
+  </div>
+</div>
+
+<!-- 2. Modal: Edit Student Information -->
+<div id="modal-edit-member" class="modal-backdrop">
+  <div class="modal-box modal-lg">
+    <div class="modal-header">
+      <h3 class="modal-title">Edit Student Information</h3>
+      <button class="modal-close-btn" data-close-modal="modal-edit-member">&times;</button>
+    </div>
+    <form id="form-edit-member">
+      <div class="modal-body">
+        <div class="form-grid">
+          <div class="form-group">
+            <label class="form-label">Admission ID</label>
+            <input type="text" id="edit-member-id" class="form-input" readonly style="background:var(--bg-subtle);">
+          </div>
+          <div class="form-group">
+            <label class="form-label">Full Name *</label>
+            <input type="text" name="name" id="edit-member-name" class="form-input" required>
+          </div>
+          <div class="form-group">
+            <label class="form-label">Mobile Number *</label>
+            <input type="tel" name="phone" id="edit-member-phone" class="form-input" required>
+          </div>
+          <div class="form-group">
+            <label class="form-label">Email Address</label>
+            <input type="email" name="email" id="edit-member-email" class="form-input">
+          </div>
+          <div class="form-group full-width">
+            <label class="form-label">Address</label>
+            <input type="text" name="address" id="edit-member-address" class="form-input">
+          </div>
+          <div class="form-group">
+            <label class="form-label">Target Exam</label>
+            <input type="text" name="examTarget" id="edit-member-exam" class="form-input">
+          </div>
+          <div class="form-group">
+            <label class="form-label">Assigned Desk / Seat</label>
+            <select name="seatId" id="edit-member-seat" class="form-select"></select>
+          </div>
+          <div class="form-group">
+            <label class="form-label">Shift</label>
+            <select name="shift" id="edit-member-shift" class="form-select">
+              <option value="Full Day (06:00 AM - 10:00 PM)">Full Day (06:00 AM - 10:00 PM)</option>
+              <option value="Morning (06:00 AM - 12:00 PM)">Morning (06:00 AM - 12:00 PM)</option>
+              <option value="Afternoon (12:00 PM - 06:00 PM)">Afternoon (12:00 PM - 06:00 PM)</option>
+              <option value="Evening (04:00 PM - 10:00 PM)">Evening (04:00 PM - 10:00 PM)</option>
+            </select>
+          </div>
+          <div class="form-group">
+            <label class="form-label">Monthly Fee (₹)</label>
+            <input type="number" name="monthlyFee" id="edit-member-fee" class="form-input" required>
+          </div>
+          <div class="form-group">
+            <label class="form-label">Membership Status</label>
+            <select name="status" id="edit-member-status" class="form-select">
+              <option value="Active">Active</option>
+              <option value="Due">Due</option>
+              <option value="Inactive">Inactive</option>
+            </select>
+          </div>
+          <div class="form-group">
+            <label class="form-label">Valid Till Date</label>
+            <input type="date" name="validTill" id="edit-member-validtill" class="form-input">
+          </div>
+          <div class="form-group">
+            <label class="form-label">Pending Dues (₹)</label>
+            <input type="number" name="dues" id="edit-member-dues" class="form-input" value="0">
+          </div>
+        </div>
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-secondary" data-close-modal="modal-edit-member">Cancel</button>
+        <button type="submit" class="btn btn-primary">Save Changes</button>
+      </div>
+    </form>
+  </div>
+</div>
+
+<!-- 3. Modal: Delete Student Confirmation -->
+<div id="modal-delete-member" class="modal-backdrop">
+  <div class="modal-box" style="max-width: 440px;">
+    <div class="modal-header">
+      <h3 class="modal-title" style="color: var(--danger-dark);">Confirm Delete Student</h3>
+      <button class="modal-close-btn" data-close-modal="modal-delete-member">&times;</button>
+    </div>
+    <div class="modal-body">
+      <div id="delete-student-prompt-text" style="font-size: 0.9rem; color: var(--text-main); line-height: 1.5;"></div>
+    </div>
+    <div class="modal-footer">
+      <button type="button" class="btn btn-secondary" data-close-modal="modal-delete-member">Cancel</button>
+      <button type="button" id="btn-confirm-delete-student" class="btn btn-primary" style="background: var(--danger); border-color: var(--danger-dark);">
+        Yes, Delete Student
+      </button>
+    </div>
+  </div>
+</div>
+
+<!-- 4. Modal: Collect Fee / Renew (Includes Admin Collector & Payment Method) -->
+<div id="modal-collect-fee" class="modal-backdrop">
+  <div class="modal-box">
+    <div class="modal-header">
+      <h3 class="modal-title">Collect Subscription Fee - Gupta Library</h3>
+      <button class="modal-close-btn" data-close-modal="modal-collect-fee">&times;</button>
+    </div>
+    <form id="form-collect-fee">
+      <div class="modal-body">
+        <div class="form-group">
+          <label class="form-label">Collecting Admin (Logged In)</label>
+          <input type="text" id="collect-fee-admin-display" class="form-input" readonly style="background: var(--bg-subtle); font-weight: 600; color: var(--primary);">
+        </div>
+
+        <div class="form-group">
+          <label class="form-label">Select Student *</label>
+          <select name="studentId" id="collect-fee-student" class="form-select" required></select>
+        </div>
+
+        <div class="form-grid">
+          <div class="form-group">
+            <label class="form-label">Duration (Months)</label>
+            <select name="months" class="form-select" id="collect-fee-months">
+              <option value="1">1 Month</option>
+              <option value="2">2 Months</option>
+              <option value="3">3 Months (Quarterly)</option>
+              <option value="6">6 Months</option>
+            </select>
+          </div>
+          <div class="form-group">
+            <label class="form-label">Amount Paid (₹) *</label>
+            <input type="number" name="amount" id="collect-fee-amount" class="form-input" value="800" required>
+          </div>
+        </div>
+
+        <div class="form-group">
+          <label class="form-label">Payment Method *</label>
+          <select name="paymentMode" class="form-select" required>
+            <option value="UPI (PhonePe)">📱 UPI - PhonePe</option>
+            <option value="UPI (Google Pay)">📱 UPI - Google Pay (GPay)</option>
+            <option value="UPI (Paytm)">📱 UPI - Paytm</option>
+            <option value="UPI (BHIM / Direct QR)">📱 UPI - BHIM / Direct QR Scanner</option>
+            <option value="Cash at Counter">💵 Cash at Reception Counter</option>
+            <option value="Debit / Credit Card">💳 Debit / Credit Card (POS)</option>
+            <option value="Net Banking / IMPS">🏦 Net Banking / IMPS Transfer</option>
+          </select>
+        </div>
+
+        <div class="form-group">
+          <label class="form-label">Remarks / Description</label>
+          <input type="text" name="remarks" class="form-input" value="Monthly study subscription fee">
+        </div>
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-secondary" data-close-modal="modal-collect-fee">Cancel</button>
+        <button type="submit" class="btn btn-primary">Confirm Payment & Generate PDF Receipt</button>
+      </div>
+    </form>
+  </div>
+</div>
+
+<!-- 5. Modal: Official Gupta Library PDF / Printable Payment Receipt -->
+<div id="modal-receipt-preview" class="modal-backdrop">
+  <div class="modal-box modal-receipt">
+    <div class="modal-header">
+      <h3 class="modal-title">Payment Receipt Preview</h3>
+      <button class="modal-close-btn" data-close-modal="modal-receipt-preview">&times;</button>
+    </div>
+    <div class="modal-body" id="receipt-modal-content"></div>
+    <div class="modal-footer">
+      <button class="btn btn-secondary" onclick="FeeManager.printReceipt()">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor"><polyline points="6 9 6 2 18 2 18 9"/><path d="M6 18H4a2 2 0 0 1-2-2v-5a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v5a2 2 0 0 1-2 2h-2"/><rect width="12" height="8" x="6" y="14"/></svg>
+        Print / Save PDF
+      </button>
+      <button class="btn btn-primary" data-close-modal="modal-receipt-preview">Done</button>
+    </div>
+  </div>
+</div>
+
+<!-- 6. Modal: Student Identity Card -->
+<div id="modal-id-card" class="modal-backdrop">
+  <div class="modal-box" style="max-width: 440px;">
+    <div class="modal-header">
+      <h3 class="modal-title">Student Identity Card</h3>
+      <button class="modal-close-btn" data-close-modal="modal-id-card">&times;</button>
+    </div>
+    <div class="modal-body" id="id-card-modal-content"></div>
+    <div class="modal-footer">
+      <button class="btn btn-secondary" onclick="window.print()">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor"><polyline points="6 9 6 2 18 2 18 9"/><path d="M6 18H4a2 2 0 0 1-2-2v-5a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v5a2 2 0 0 1-2 2h-2"/><rect width="12" height="8" x="6" y="14"/></svg>
+        Print ID Card
+      </button>
+      <button class="btn btn-primary" data-close-modal="modal-id-card">Close</button>
+    </div>
+  </div>
+</div>
+
+<!-- 7. Modal: Seat Action -->
+<div id="modal-seat-action" class="modal-backdrop">
+  <div class="modal-box">
+    <div class="modal-header">
+      <h3 class="modal-title" id="seat-action-modal-title">Seat Details</h3>
+      <button class="modal-close-btn" data-close-modal="modal-seat-action">&times;</button>
+    </div>
+    <div class="modal-body" id="seat-action-modal-body"></div>
+  </div>
+</div>
+
+<!-- 8. Modal: Member Profile Details -->
+<div id="modal-member-details" class="modal-backdrop">
+  <div class="modal-box modal-lg">
+    <div class="modal-header">
+      <h3 class="modal-title" id="member-details-modal-title">Student Profile</h3>
+      <button class="modal-close-btn" data-close-modal="modal-member-details">&times;</button>
+    </div>
+    <div class="modal-body" id="member-details-modal-body"></div>
+  </div>
+</div>
+
+<!-- 9. Modal: Global Quick Search (Ctrl+K) -->
+<div id="modal-quick-search" class="modal-backdrop">
+  <div class="quick-search-box">
+    <div class="quick-search-input-wrap">
+      <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.3-4.3"/></svg>
+      <input type="text" id="quick-search-box-input" placeholder="Type name, phone, admission ID, receipt, or seat...">
+      <kbd class="search-kbd">ESC</kbd>
+    </div>
+    <div class="quick-search-results" id="quick-search-results-list">
+      <div style="padding: 1.5rem; text-align: center; color: var(--text-muted);">
+        Type to search students, seats, or payment receipts...
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Scripts Execution Pipeline -->
+<script src="js/state.js"></script>
+<script src="js/supabaseClient.js"></script>
+<script src="js/authManager.js"></script>
+<script src="js/adminManager.js"></script>
+<script src="js/seatManager.js"></script>
+<script src="js/memberManager.js"></script>
+<script src="js/feeManager.js"></script>
+<script src="js/reports.js"></script>
+<script src="js/settings.js"></script>
+<script src="js/app.js"></script>
+
+</body>
+</html>

@@ -1,0 +1,61 @@
+/* ==========================================================================
+   GUPTA LIBRARY - PRINT STYLESHEET
+   Supports: Official Thermal Receipt (80mm), Full A4 PDF Receipts, and Student ID Cards
+   ========================================================================== */
+
+@media print {
+  /* Hide all app chrome */
+  body * {
+    visibility: hidden;
+  }
+
+  /* Show only printable area */
+  .printable-area, .printable-area * {
+    visibility: visible;
+  }
+
+  .printable-area {
+    position: absolute;
+    left: 0;
+    top: 0;
+    width: 100%;
+    margin: 0;
+    padding: 0;
+    background: #ffffff !important;
+    color: #000000 !important;
+  }
+
+  /* No page margins interference */
+  @page {
+    margin: 10mm;
+    size: auto;
+  }
+
+  /* Thermal 80mm Mode */
+  .thermal-receipt {
+    width: 78mm !important;
+    max-width: 78mm !important;
+    padding: 2mm !important;
+    font-size: 11px !important;
+    line-height: 1.2 !important;
+    color: #000000 !important;
+    border: none !important;
+  }
+
+  .thermal-receipt .receipt-brand-name {
+    font-size: 15px !important;
+  }
+
+  .thermal-receipt .receipt-table th,
+  .thermal-receipt .receipt-table td {
+    padding: 2px 0 !important;
+  }
+
+  /* ID Card Print */
+  .id-card-print-target {
+    width: 85.6mm; /* Standard CR80 ID Card dimensions */
+    height: 120mm;
+    margin: 0 auto;
+    page-break-inside: avoid;
+  }
+}

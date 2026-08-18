@@ -1,0 +1,19 @@
+{
+  "name": "gupta-library",
+  "version": "1.0.0",
+  "description": "Official Library & Study Center Management System for Gupta Library, Sasamusa, Gopalganj, Bihar",
+  "main": "index.html",
+  "scripts": {
+    "start": "npx serve .",
+    "dev": "npx serve ."
+  },
+  "keywords": [
+    "gupta-library",
+    "library-management",
+    "study-center",
+    "gopalganj",
+    "bihar"
+  ],
+  "author": "Gupta Library",
+  "license": "MIT"
+}
