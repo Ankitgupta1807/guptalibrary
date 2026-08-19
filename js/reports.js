@@ -32,7 +32,7 @@ const ReportsManager = {
             <div style="font-weight: 700;">${m.name}</div>
             <div style="font-size: 0.72rem; color: var(--text-muted);">${m.id}</div>
           </td>
-          <td><strong>${m.phone}</strong></td>
+          <td><a href="tel:${(m.phone || '').replace(/[^0-9]/g, '')}" style="color:var(--text-main); text-decoration:underline; font-weight:700;">📞 ${m.phone}</a></td>
           <td>Seat: <strong>${m.seatId || 'General'}</strong> (${m.shift ? m.shift.split('(')[0] : 'Standard'})</td>
           <td><strong style="color: var(--danger); font-size: 1rem;">${settings.currency}${m.dues || m.monthlyFee}</strong></td>
           <td><span class="status-pill due">Due since ${m.validTill}</span></td>

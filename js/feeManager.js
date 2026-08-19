@@ -97,7 +97,7 @@ const FeeManager = {
           <td>
             <div style="font-weight: 700; color: var(--text-main);">${t.studentName}</div>
             <div style="font-size: 0.72rem; color: var(--text-muted);">
-              <strong>${t.studentId}</strong> &bull; 📞 ${t.phone}
+              <strong>${t.studentId}</strong> &bull; <a href="tel:${(t.phone || '').replace(/[^0-9]/g, '')}" style="color:var(--text-muted); text-decoration:underline;">📞 ${t.phone}</a>
             </div>
           </td>
           <td>
@@ -135,6 +135,9 @@ const FeeManager = {
               </button>
               <button class="btn btn-secondary btn-sm btn-icon-only" title="Share Receipt on WhatsApp" onclick="FeeManager.shareWhatsApp('${t.receiptNo}')">
                 <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#25d366" stroke-width="2"><path d="M21 11.5a8.38 8.38 0 0 1-.9 3.8 8.5 8.5 0 0 1-7.6 4.7 8.38 8.38 0 0 1-3.8-.9L3 21l1.9-5.7a8.38 8.38 0 0 1-.9-3.8 8.5 8.5 0 0 1 4.7-7.6 8.38 8.38 0 0 1 3.8-.9h.5a8.48 8.48 0 0 1 8 8v.5z"/></svg>
+              </button>
+              <button class="btn btn-secondary btn-sm" style="color: var(--danger-dark); border-color: rgba(239,68,68,0.3);" title="Delete Receipt" onclick="FeeManager.deleteReceipt('${t.receiptNo}')">
+                <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor"><path d="M3 6h18"/><path d="M19 6v14c0 1-1 2-2 2H7c-1 0-2-1-2-2V6"/><path d="M8 6V4c0-1 1-2 2-2h4c1 0 2 1 2 2v2"/></svg>
               </button>
             </div>
           </td>
@@ -354,6 +357,15 @@ const FeeManager = {
     const cleanPhone = (tx.phone || '').replace(/[^0-9]/g, '');
     const url = `https://wa.me/91${cleanPhone}?text=${encodeURIComponent(msg)}`;
     window.open(url, '_blank');
+  },
+
+  deleteReceipt(receiptNo) {
+    if (confirm(`Are you sure you want to delete payment receipt ${receiptNo}?`)) {
+      window.appState.deleteTransaction(receiptNo);
+      this.render();
+      window.App.updateDashboardStats();
+      window.App.showToast(`Receipt ${receiptNo} deleted.`, 'info');
+    }
   }
 };
 

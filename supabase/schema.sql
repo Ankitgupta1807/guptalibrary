@@ -101,7 +101,6 @@ CREATE TABLE IF NOT EXISTS public.library_settings (
     currency VARCHAR(10) DEFAULT '₹',
     monthly_plan_fullday NUMERIC(10,2) DEFAULT 800,
     monthly_plan_shift NUMERIC(10,2) DEFAULT 500,
-    admission_fee NUMERIC(10,2) DEFAULT 200,
     receipt_footer_note TEXT
 );
 
@@ -133,6 +132,9 @@ DECLARE
     seat_id VARCHAR(50);
     seat_type VARCHAR(100);
 BEGIN
+    -- Remove any legacy seats that are not part of 94 seats
+    DELETE FROM public.seats WHERE id NOT LIKE 'G%' AND id NOT LIKE 'A%';
+
     -- Ground Floor: 44 Seats (G1 to G44)
     FOR i IN 1..44 LOOP
         seat_id := 'G' || i;

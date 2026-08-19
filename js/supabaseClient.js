@@ -113,18 +113,37 @@ const SupabaseManager = {
         }));
       }
 
-      // 2. Seats
+      // 2. Seats (Only allow official 94 seats: Ground Floor G1-G44 and First Floor A1-A50)
       const { data: seats, error: sErr } = await this.client.from('seats').select('*');
       if (!sErr && seats && seats.length > 0) {
-        window.appState.state.seats = seats.map(s => ({
-          id: s.id,
-          hall: s.hall,
-          type: s.type,
-          status: s.status,
-          studentId: s.student_id,
-          studentName: s.student_name,
-          shift: s.shift
-        }));
+        const validSeats = seats.filter(s => 
+          (s.hall === 'Ground Floor' && /^G([1-9]|[1-3][0-9]|4[0-4])$/.test(s.id)) ||
+          (s.hall === 'First Floor' && /^A([1-9]|[1-4][0-9]|50)$/.test(s.id))
+        );
+
+        if (validSeats.length > 0) {
+          window.appState.state.seats = validSeats.map(s => ({
+            id: s.id,
+            hall: s.hall,
+            type: s.type,
+            status: s.status,
+            studentId: s.student_id,
+            studentName: s.student_name,
+            shift: s.shift
+          }));
+        }
+
+        // Clean up any legacy rogue seats from Supabase in background
+        const invalidSeats = seats.filter(s => 
+          !(s.hall === 'Ground Floor' && /^G([1-9]|[1-3][0-9]|4[0-4])$/.test(s.id)) &&
+          !(s.hall === 'First Floor' && /^A([1-9]|[1-4][0-9]|50)$/.test(s.id))
+        );
+        if (invalidSeats.length > 0) {
+          const invalidIds = invalidSeats.map(s => s.id);
+          this.client.from('seats').delete().in('id', invalidIds).then(() => {
+            console.log('🧹 Cleaned up legacy seats from Supabase:', invalidIds.length);
+          });
+        }
       }
 
       // 3. Transactions
@@ -255,6 +274,16 @@ const SupabaseManager = {
       });
     } catch (e) {
       console.error('Failed to sync transaction to Supabase:', e);
+    }
+  },
+
+  // Delete Transaction from Supabase
+  async deleteTransactionFromCloud(receiptNo) {
+    if (!this.client || !this.isConnected) return;
+    try {
+      await this.client.from('transactions').delete().eq('receipt_no', receiptNo);
+    } catch (e) {
+      console.error('Failed to delete transaction from Supabase:', e);
     }
   },
 

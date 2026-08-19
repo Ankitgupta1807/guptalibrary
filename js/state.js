@@ -18,7 +18,6 @@ const defaultState = {
     currency: '₹',
     monthlyPlanFullDay: 800,
     monthlyPlanShift: 500,
-    admissionFee: 200,
     receiptFooterNote: 'Thank you for choosing Gupta Library. Fees once paid are non-refundable. Maintain discipline and silence in the study hall.',
     theme: 'light'
   },
@@ -455,7 +454,31 @@ class StateManager {
     try {
       const data = localStorage.getItem(STORAGE_KEY);
       if (data) {
-        return JSON.parse(data);
+        const parsed = JSON.parse(data);
+        // Normalize seats to exactly 94 seats (44 Ground Floor + 50 First Floor)
+        if (parsed && parsed.seats) {
+          const validSeats = parsed.seats.filter(s => 
+            (s.hall === 'Ground Floor' && /^G([1-9]|[1-3][0-9]|4[0-4])$/.test(s.id)) ||
+            (s.hall === 'First Floor' && /^A([1-9]|[1-4][0-9]|50)$/.test(s.id))
+          );
+          if (validSeats.length === 94) {
+            parsed.seats = validSeats;
+          } else {
+            // Restore default 94 seats structure while preserving active member seat assignments
+            const defaultSeats = JSON.parse(JSON.stringify(defaultState.seats));
+            parsed.seats.forEach(oldSeat => {
+              const target = defaultSeats.find(s => s.id === oldSeat.id);
+              if (target && oldSeat.status === 'Occupied') {
+                target.status = 'Occupied';
+                target.studentId = oldSeat.studentId;
+                target.studentName = oldSeat.studentName;
+                target.shift = oldSeat.shift;
+              }
+            });
+            parsed.seats = defaultSeats;
+          }
+        }
+        return parsed;
       }
     } catch (e) {
       console.warn('Could not read state from localStorage', e);
@@ -473,6 +496,22 @@ class StateManager {
 
   resetToDefault() {
     this.state = JSON.parse(JSON.stringify(defaultState));
+    this.saveState();
+    return this.state;
+  }
+
+  clearAllData() {
+    this.state.members = [];
+    this.state.transactions = [];
+    this.state.issuedBooks = [];
+    if (this.state.seats) {
+      this.state.seats.forEach(s => {
+        s.status = 'Vacant';
+        s.studentId = null;
+        s.studentName = null;
+        s.shift = null;
+      });
+    }
     this.saveState();
     return this.state;
   }
@@ -635,6 +674,15 @@ class StateManager {
     }
 
     return newTx;
+  }
+
+  deleteTransaction(receiptNo) {
+    this.state.transactions = this.state.transactions.filter(t => t.receiptNo !== receiptNo);
+    this.saveState();
+
+    if (window.SupabaseManager && window.SupabaseManager.isConnected) {
+      window.SupabaseManager.deleteTransactionFromCloud(receiptNo);
+    }
   }
 
   // Books

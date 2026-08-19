@@ -26,7 +26,6 @@ const SettingsManager = {
     setVal('setting-lib-landmark', settings.landmark);
     setVal('setting-fee-fullday', settings.monthlyPlanFullDay);
     setVal('setting-fee-shift', settings.monthlyPlanShift);
-    setVal('setting-fee-admission', settings.admissionFee);
     setVal('setting-receipt-note', settings.receiptFooterNote);
   },
 
@@ -82,6 +81,11 @@ const SettingsManager = {
     if (resetBtn) {
       resetBtn.addEventListener('click', () => this.resetDemoData());
     }
+
+    const clearAllBtn = document.getElementById('btn-clear-all-data');
+    if (clearAllBtn) {
+      clearAllBtn.addEventListener('click', () => this.clearAllData());
+    }
   },
 
   saveSettings(form) {
@@ -94,7 +98,6 @@ const SettingsManager = {
       landmark: formData.get('landmark') || 'Near Sasamusa High School, Main Road',
       monthlyPlanFullDay: Number(formData.get('monthlyPlanFullDay')) || 800,
       monthlyPlanShift: Number(formData.get('monthlyPlanShift')) || 500,
-      admissionFee: Number(formData.get('admissionFee')) || 200,
       receiptFooterNote: formData.get('receiptFooterNote')
     };
 
@@ -137,6 +140,14 @@ const SettingsManager = {
   resetDemoData() {
     if (confirm('Are you sure you want to reset all data back to Gupta Library demo dataset? Any custom entries will be restored to initial state.')) {
       window.appState.resetToDefault();
+      window.location.reload();
+    }
+  },
+
+  clearAllData() {
+    if (confirm('⚠️ Are you sure you want to clear ALL students, payment records, and vacate all seats for a fresh start? This will set all active students, collections, and dues to 0.')) {
+      window.appState.clearAllData();
+      window.App.showToast('All records cleared for a fresh start.', 'info');
       window.location.reload();
     }
   }

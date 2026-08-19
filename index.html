@@ -2,7 +2,10 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+  <meta name="theme-color" content="#4338ca">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
   <title>Gupta Library - Admin Portal (Sasamusa, Gopalganj, Bihar - 841505)</title>
   <meta name="description" content="Official Admin Management Portal for Gupta Library, Sasamusa, Gopalganj, Bihar - 841505. Secure student admissions, seating management, and fee collection audit logs.">
   
@@ -153,8 +156,8 @@
             <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="4"/><path d="M12 2v2"/><path d="M12 20v2"/><path d="m4.93 4.93 1.41 1.41"/><path d="m17.66 17.66 1.41 1.41"/><path d="M2 12h2"/><path d="M20 12h2"/><path d="m6.34 17.66-1.41 1.41"/><path d="m19.07 4.93-1.41 1.41"/></svg>
           </button>
 
-          <!-- Quick Action: Take New Admission -->
-          <button class="btn btn-primary btn-sm" onclick="MemberManager.openNewMemberModal()">
+          <!-- Quick Action: Take New Admission (Desktop header button; Mobile uses center + nav button) -->
+          <button class="btn btn-primary btn-sm desktop-only-btn" onclick="MemberManager.openNewMemberModal()">
             <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="12" x2="12" y1="5" y2="19"/><line x1="5" x2="19" y1="12" y2="12"/></svg>
             Take Admission
           </button>
@@ -205,9 +208,9 @@
                   <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor"><path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/></svg>
                 </div>
               </div>
-              <div class="stat-value" id="stat-active-members">8</div>
-              <div class="stat-subtitle">
-                <span class="stat-trend-up">100% Verified</span> &bull; Sasamusa Branch
+              <div class="stat-value" id="stat-active-members">0</div>
+              <div class="stat-subtitle" id="stat-active-subtitle">
+                <span class="stat-trend-up">0 Active</span> &bull; Sasamusa Branch
               </div>
             </div>
 
@@ -218,9 +221,9 @@
                   <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor"><path d="M19 9V6a2 2 0 0 0-2-2H7a2 2 0 0 0-2 2v3"/><path d="M3 11v5a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-5a2 2 0 0 0-4 0v2H7v-2a2 2 0 0 0-4 0Z"/></svg>
                 </div>
               </div>
-              <div class="stat-value" id="stat-occupied-seats">6 / 44</div>
-              <div class="stat-subtitle">
-                <span style="color: var(--success); font-weight:600;">38 Available</span> across 2 AC Halls
+              <div class="stat-value" id="stat-occupied-seats">0 / 94</div>
+              <div class="stat-subtitle" id="stat-available-subtitle">
+                <span style="color: var(--success); font-weight:600;">94 Available</span> across 2 AC Halls
               </div>
             </div>
 
@@ -231,9 +234,9 @@
                   <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor"><rect width="20" height="14" x="2" y="5" rx="2"/><line x1="2" x2="22" y1="10" y2="10"/></svg>
                 </div>
               </div>
-              <div class="stat-value" id="stat-total-revenue">₹3,900</div>
-              <div class="stat-subtitle">
-                <span class="stat-trend-up">Audited Collections</span> &bull; Auto PDF Receipts
+              <div class="stat-value" id="stat-total-revenue">₹0</div>
+              <div class="stat-subtitle" id="stat-revenue-subtitle">
+                <span class="stat-trend-up">0 Receipts</span> &bull; Auto PDF Receipts
               </div>
             </div>
 
@@ -244,9 +247,9 @@
                   <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor"><circle cx="12" cy="12" r="10"/><line x1="12" x2="12" y1="8" y2="12"/><line x1="12" x2="12.01" y1="16" y2="16"/></svg>
                 </div>
               </div>
-              <div class="stat-value" id="stat-pending-dues">₹1,000</div>
-              <div class="stat-subtitle">
-                <span class="stat-trend-down">2 Students Pending</span> &bull; Click to Remind
+              <div class="stat-value" id="stat-pending-dues">₹0</div>
+              <div class="stat-subtitle" id="stat-dues-subtitle">
+                <span style="color: var(--success); font-weight:600;">All Clear (0 Pending)</span> &bull; No Dues
               </div>
             </div>
           </div>
@@ -661,11 +664,6 @@
                     <input type="number" name="monthlyPlanShift" id="setting-fee-shift" class="form-input" required value="500">
                   </div>
 
-                  <div class="form-group">
-                    <label class="form-label">One-Time Admission Fee (₹)</label>
-                    <input type="number" name="admissionFee" id="setting-fee-admission" class="form-input" required value="200">
-                  </div>
-
                   <div class="form-group full-width">
                     <label class="form-label">Receipt Footer Note / Terms</label>
                     <textarea name="receiptFooterNote" id="setting-receipt-note" class="form-textarea" rows="2">Thank you for choosing Gupta Library. Fees once paid are non-refundable. Maintain discipline and silence in the study hall.</textarea>
@@ -703,6 +701,14 @@
                   <p style="font-size: 0.78rem; color: var(--text-muted); margin-bottom: 0.75rem;">Restore original Gupta Library demo dataset (Sasamusa, Gopalganj).</p>
                   <button id="btn-reset-demo-data" class="btn btn-secondary btn-sm" style="color: var(--danger-dark); border-color: var(--danger-light); width: 100%;">
                     Reset to Demo State
+                  </button>
+                </div>
+
+                <div style="background: rgba(239, 68, 68, 0.08); padding: 1rem; border-radius: var(--radius-md); border: 1px solid rgba(239, 68, 68, 0.3);">
+                  <div style="font-weight: 700; font-size: 0.9rem; color: var(--danger-dark); margin-bottom: 0.25rem;">Clear All Records to Zero</div>
+                  <p style="font-size: 0.78rem; color: var(--text-muted); margin-bottom: 0.75rem;">Clear all students, payments, and dues to 0 (all 94 seats set to Vacant) for fresh library operations.</p>
+                  <button id="btn-clear-all-data" class="btn btn-secondary btn-sm" style="color: white; background: var(--danger); border: none; width: 100%;">
+                    Clear All Data to 0
                   </button>
                 </div>
               </div>
@@ -808,10 +814,6 @@
             <input type="number" name="monthlyFee" class="form-input" value="800" required>
           </div>
           <div class="form-group">
-            <label class="form-label">One-Time Admission Fee (₹)</label>
-            <input type="number" name="admissionFee" class="form-input" value="200" required>
-          </div>
-          <div class="form-group full-width">
             <label class="form-label">Joining Date</label>
             <input type="date" name="joiningDate" class="form-input" value="2026-08-18">
           </div>

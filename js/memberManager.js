@@ -96,6 +96,7 @@ const MemberManager = {
     tableBody.innerHTML = members.map(m => {
       const statusClass = m.status === 'Active' ? 'active' : (m.status === 'Due' ? 'due' : 'inactive');
       const initials = (m.name || 'S').split(' ').map(n => n[0]).join('').substring(0, 2).toUpperCase();
+      const cleanPhone = (m.phone || '').replace(/[^0-9]/g, '');
 
       return `
         <tr>
@@ -104,7 +105,10 @@ const MemberManager = {
               <div class="user-avatar" style="background: ${m.avatarColor || '#4338ca'}; color: white;">${initials}</div>
               <div>
                 <div class="user-meta-name">${m.name}</div>
-                <div class="user-meta-id"><strong style="color:var(--primary);">${m.id}</strong> &bull; ${m.phone}</div>
+                <div class="user-meta-id">
+                  <strong style="color:var(--primary);">${m.id}</strong> &bull; 
+                  <a href="tel:${cleanPhone}" style="color:var(--text-muted); text-decoration:underline;">📞 ${m.phone}</a>
+                </div>
               </div>
             </div>
           </td>
@@ -128,7 +132,10 @@ const MemberManager = {
             <div style="font-size: 0.82rem; font-weight: 500;">${m.validTill || 'N/A'}</div>
           </td>
           <td style="text-align: right;">
-            <div style="display: flex; gap: 0.35rem; justify-content: flex-end;">
+            <div style="display: flex; gap: 0.35rem; justify-content: flex-end; flex-wrap: wrap;">
+              <button class="btn btn-secondary btn-sm btn-icon-only" title="Chat on WhatsApp" onclick="MemberManager.sendWhatsApp('${m.id}')">
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#25d366" stroke-width="2"><path d="M21 11.5a8.38 8.38 0 0 1-.9 3.8 8.5 8.5 0 0 1-7.6 4.7 8.38 8.38 0 0 1-3.8-.9L3 21l1.9-5.7a8.38 8.38 0 0 1-.9-3.8 8.5 8.5 0 0 1 4.7-7.6 8.38 8.38 0 0 1 3.8-.9h.5a8.48 8.48 0 0 1 8 8v.5z"/></svg>
+              </button>
               <button class="btn btn-secondary btn-sm" title="View Student ID Card" onclick="MemberManager.openIDCard('${m.id}')">
                 <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor"><rect width="20" height="14" x="2" y="5" rx="2"/><line x1="2" x2="22" y1="10" y2="10"/></svg>
                 ID
@@ -169,7 +176,6 @@ const MemberManager = {
     const seatId = formData.get('seatId') || null;
     const shift = formData.get('shift');
     const monthlyFee = Number(formData.get('monthlyFee')) || (shift.includes('Full') ? 800 : 500);
-    const admissionFee = Number(formData.get('admissionFee')) || 200;
     const joiningDate = formData.get('joiningDate') || new Date().toISOString().split('T')[0];
 
     // Compute Valid Till 1 month forward
@@ -192,8 +198,8 @@ const MemberManager = {
       dues: 0
     });
 
-    // Record Admission & First Month Payment
-    const totalPaid = monthlyFee + admissionFee;
+    // Record First Month Subscription Payment
+    const totalPaid = monthlyFee;
     const tx = window.appState.addTransaction({
       studentId: newMember.id,
       studentName: newMember.name,
@@ -203,7 +209,7 @@ const MemberManager = {
       amount: totalPaid,
       paymentMode: 'Cash / UPI',
       period: `${joiningDate} to ${validTill}`,
-      remarks: `Admission Fee (₹${admissionFee}) + 1st Month Subscription (₹${monthlyFee})`
+      remarks: `1st Month Study Subscription (₹${monthlyFee})`
     });
 
     form.reset();
@@ -486,6 +492,15 @@ const MemberManager = {
     `;
 
     window.App.openModal('modal-id-card');
+  },
+
+  sendWhatsApp(memberId) {
+    const member = window.appState.getMemberById(memberId);
+    if (!member) return;
+    const settings = window.appState.getSettings();
+    const cleanPhone = (member.phone || '').replace(/[^0-9]/g, '');
+    const msg = `Hello *${member.name}*,\n\nGreetings from *${settings.name}* (${settings.address}).\n\nYour Admission ID is *${member.id}* and your assigned seat is *${member.seatId || 'General Desk'}*.\n\n*Helpline:* ${settings.phone}\n*Email:* ${settings.email}`;
+    window.open(`https://wa.me/91${cleanPhone}?text=${encodeURIComponent(msg)}`, '_blank');
   }
 };
 

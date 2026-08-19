@@ -168,10 +168,12 @@ const App = {
     const activeCount = members.filter(m => m.status === 'Active').length;
     const occupiedSeats = seats.filter(s => s.status === 'Occupied').length;
     const totalSeats = seats.length;
+    const availableSeats = Math.max(0, totalSeats - occupiedSeats);
 
     // Financials
     const totalRevenue = txs.reduce((acc, t) => acc + (t.amount || 0), 0);
     const totalDues = members.reduce((acc, m) => acc + (m.dues || 0), 0);
+    const pendingStudentsCount = members.filter(m => (m.dues || 0) > 0 || m.status === 'Due').length;
 
     const setStat = (id, val) => {
       const el = document.getElementById(id);
@@ -182,6 +184,31 @@ const App = {
     setStat('stat-occupied-seats', `${occupiedSeats} / ${totalSeats}`);
     setStat('stat-total-revenue', `${settings.currency}${totalRevenue.toLocaleString()}`);
     setStat('stat-pending-dues', `${settings.currency}${totalDues.toLocaleString()}`);
+
+    // Update Subtitles dynamically based on real data
+    const subActive = document.getElementById('stat-active-subtitle');
+    if (subActive) {
+      subActive.innerHTML = `<span class="stat-trend-up">${activeCount} Active</span> &bull; Sasamusa Branch`;
+    }
+
+    const subSeats = document.getElementById('stat-available-subtitle');
+    if (subSeats) {
+      subSeats.innerHTML = `<span style="color: var(--success); font-weight:600;">${availableSeats} Available</span> across 2 AC Halls`;
+    }
+
+    const subRevenue = document.getElementById('stat-revenue-subtitle');
+    if (subRevenue) {
+      subRevenue.innerHTML = `<span class="stat-trend-up">${txs.length} Payment${txs.length === 1 ? '' : 's'}</span> &bull; Auto PDF Receipts`;
+    }
+
+    const subDues = document.getElementById('stat-dues-subtitle');
+    if (subDues) {
+      if (pendingStudentsCount === 0 || totalDues === 0) {
+        subDues.innerHTML = `<span style="color: var(--success); font-weight:600;">All Clear (0 Pending)</span> &bull; No Dues`;
+      } else {
+        subDues.innerHTML = `<span class="stat-trend-down">${pendingStudentsCount} Student${pendingStudentsCount === 1 ? '' : 's'} Pending</span> &bull; Click to Remind`;
+      }
+    }
 
     // Update Activity Feed in Dashboard with Collector info
     const recentActivityBody = document.getElementById('dashboard-recent-activity');
