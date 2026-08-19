@@ -83,13 +83,25 @@ const MemberManager = {
     if (countElem) countElem.textContent = `${members.length} Students`;
 
     if (members.length === 0) {
-      tableBody.innerHTML = `
-        <tr>
-          <td colspan="7" style="text-align: center; padding: 2.5rem; color: var(--text-muted);">
-            No students found matching "${this.searchQuery || 'selected filter'}".
-          </td>
-        </tr>
-      `;
+      if (this.searchQuery || this.filterStatus !== 'all') {
+        tableBody.innerHTML = `
+          <tr>
+            <td colspan="7" style="text-align: center; padding: 2.5rem; color: var(--text-muted);">
+              No students found matching "${this.searchQuery || this.filterStatus}".
+            </td>
+          </tr>
+        `;
+      } else {
+        tableBody.innerHTML = `
+          <tr>
+            <td colspan="7" style="text-align: center; padding: 3rem 1rem; color: var(--text-muted);">
+              <div style="font-size: 1.5rem; margin-bottom: 0.5rem;">🎓</div>
+              <div style="font-weight: 600; font-size: 0.95rem; color: var(--text-main); margin-bottom: 0.25rem;">No Students Registered Yet</div>
+              <div style="font-size: 0.8rem;">Click "+ Take New Admission" to admit your first student.</div>
+            </td>
+          </tr>
+        `;
+      }
       return;
     }
 

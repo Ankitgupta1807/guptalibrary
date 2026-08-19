@@ -64,13 +64,25 @@ const FeeManager = {
     }
 
     if (transactions.length === 0) {
-      tableBody.innerHTML = `
-        <tr>
-          <td colspan="7" style="text-align: center; padding: 2.5rem; color: var(--text-muted);">
-            No fee payment records found matching "${this.searchQuery || 'selected filter'}".
-          </td>
-        </tr>
-      `;
+      if (this.searchQuery || this.filterMode !== 'all') {
+        tableBody.innerHTML = `
+          <tr>
+            <td colspan="7" style="text-align: center; padding: 2.5rem; color: var(--text-muted);">
+              No fee payment records found matching "${this.searchQuery || this.filterMode}".
+            </td>
+          </tr>
+        `;
+      } else {
+        tableBody.innerHTML = `
+          <tr>
+            <td colspan="7" style="text-align: center; padding: 3rem 1rem; color: var(--text-muted);">
+              <div style="font-size: 1.5rem; margin-bottom: 0.5rem;">🧾</div>
+              <div style="font-weight: 600; font-size: 0.95rem; color: var(--text-main); margin-bottom: 0.25rem;">No Fee Collections Logged</div>
+              <div style="font-size: 0.8rem;">Click "Collect Fee" to record your first payment and issue a receipt.</div>
+            </td>
+          </tr>
+        `;
+      }
       return;
     }
 

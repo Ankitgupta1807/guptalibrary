@@ -128,7 +128,7 @@ const SupabaseManager = {
     try {
       // 1. Members
       const { data: members, error: mErr } = await this.client.from('members').select('*');
-      if (!mErr && members && members.length > 0) {
+      if (!mErr && members) {
         window.appState.state.members = members.map(m => ({
           id: m.id,
           name: m.name,
@@ -184,7 +184,7 @@ const SupabaseManager = {
 
       // 3. Transactions
       const { data: txs, error: tErr } = await this.client.from('transactions').select('*').order('created_at', { ascending: false });
-      if (!tErr && txs && txs.length > 0) {
+      if (!tErr && txs) {
         window.appState.state.transactions = txs.map(t => ({
           receiptNo: t.receipt_no,
           studentId: t.student_id,

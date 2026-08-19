@@ -42,7 +42,8 @@ CREATE TABLE IF NOT EXISTS public.admin_users (
 INSERT INTO public.admin_users (name, email, role)
 VALUES 
   ('Ankit Gupta', 'admin@guptalibrary.com', 'admin'),
-  ('Ankit Gupta', 'guptaankit8789@gmail.com', 'admin')
+  ('Ankit Gupta', 'guptaankit8789@gmail.com', 'admin'),
+  ('Lucky Gupta', 'guptalucky8789@gmail.com', 'admin')
 ON CONFLICT (email) DO UPDATE SET role = 'admin';
 
 -- Step 5: Clean helper function for admin verification

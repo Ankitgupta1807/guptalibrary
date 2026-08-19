@@ -214,26 +214,36 @@ const App = {
     const recentActivityBody = document.getElementById('dashboard-recent-activity');
     if (recentActivityBody) {
       const recentTxs = txs.slice(0, 6);
-      recentActivityBody.innerHTML = recentTxs.map(t => {
-        const collector = t.collectedBy || 'Admin';
-        return `
-          <div style="display: flex; align-items: center; justify-content: space-between; padding: 0.75rem 0; border-bottom: 1px solid var(--border-light); flex-wrap: wrap; gap: 0.5rem;">
-            <div style="display: flex; align-items: center; gap: 0.75rem;">
-              <div style="width: 36px; height: 36px; border-radius: 50%; background: var(--primary-50); color: var(--primary); display: flex; align-items: center; justify-content: center; font-weight: 800; font-size: 0.9rem; flex-shrink: 0;">₹</div>
-              <div>
-                <div style="font-weight: 700; font-size: 0.88rem; color: var(--text-main);">${t.studentName}</div>
-                <div style="font-size: 0.72rem; color: var(--text-muted);">
-                  ${t.receiptNo} &bull; <strong style="color:var(--text-main);">${t.paymentMode}</strong> &bull; By: <em>${collector}</em>
-                </div>
-              </div>
-            </div>
-            <div style="text-align: right;">
-              <div style="font-weight: 800; font-size: 0.95rem; color: var(--success-dark);">+${settings.currency}${t.amount}</div>
-              <div style="font-size: 0.72rem; color: var(--text-muted);">${t.paymentDate} ${t.paymentTime || ''}</div>
-            </div>
+      if (recentTxs.length === 0) {
+        recentActivityBody.innerHTML = `
+          <div style="text-align: center; padding: 2.5rem 1rem; color: var(--text-muted);">
+            <div style="font-size: 1.5rem; margin-bottom: 0.5rem;">🧾</div>
+            <div style="font-weight: 600; font-size: 0.88rem; color: var(--text-main); margin-bottom: 0.25rem;">No Fee Collections Yet</div>
+            <div style="font-size: 0.78rem;">Take student admission or collect fees to see real-time payment audit records here.</div>
           </div>
         `;
-      }).join('');
+      } else {
+        recentActivityBody.innerHTML = recentTxs.map(t => {
+          const collector = t.collectedBy || 'Admin';
+          return `
+            <div style="display: flex; align-items: center; justify-content: space-between; padding: 0.75rem 0; border-bottom: 1px solid var(--border-light); flex-wrap: wrap; gap: 0.5rem;">
+              <div style="display: flex; align-items: center; gap: 0.75rem;">
+                <div style="width: 36px; height: 36px; border-radius: 50%; background: var(--primary-50); color: var(--primary); display: flex; align-items: center; justify-content: center; font-weight: 800; font-size: 0.9rem; flex-shrink: 0;">₹</div>
+                <div>
+                  <div style="font-weight: 700; font-size: 0.88rem; color: var(--text-main);">${t.studentName}</div>
+                  <div style="font-size: 0.72rem; color: var(--text-muted);">
+                    ${t.receiptNo} &bull; <strong style="color:var(--text-main);">${t.paymentMode}</strong> &bull; By: <em>${collector}</em>
+                  </div>
+                </div>
+              </div>
+              <div style="text-align: right;">
+                <div style="font-weight: 800; font-size: 0.95rem; color: var(--success-dark);">+${settings.currency}${t.amount}</div>
+                <div style="font-size: 0.72rem; color: var(--text-muted);">${t.paymentDate} ${t.paymentTime || ''}</div>
+              </div>
+            </div>
+          `;
+        }).join('');
+      }
     }
   },
 

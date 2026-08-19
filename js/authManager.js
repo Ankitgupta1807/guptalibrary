@@ -116,11 +116,11 @@ const AuthManager = {
       }
 
       // Offline / Local fallback authentication for registered admin emails
-      const isAuthorizedEmail = email === 'admin@guptalibrary.com' || email === 'guptaankit8789@gmail.com' || email.includes('admin');
+      const isAuthorizedEmail = email === 'admin@guptalibrary.com' || email === 'guptaankit8789@gmail.com' || email === 'guptalucky8789@gmail.com' || email.includes('admin');
       if (isAuthorizedEmail) {
         const localAdmin = {
           id: 'admin-local-1',
-          name: email === 'guptaankit8789@gmail.com' ? 'Ankit Gupta' : 'Admin - Gupta Library',
+          name: email === 'guptaankit8789@gmail.com' ? 'Ankit Gupta' : (email === 'guptalucky8789@gmail.com' ? 'Lucky Gupta' : 'Admin - Gupta Library'),
           email: email,
           role: 'admin'
         };

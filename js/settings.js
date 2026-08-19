@@ -77,10 +77,7 @@ const SettingsManager = {
       backupImportInput.addEventListener('change', (e) => this.importBackupJSON(e.target.files[0]));
     }
 
-    const resetBtn = document.getElementById('btn-reset-demo-data');
-    if (resetBtn) {
-      resetBtn.addEventListener('click', () => this.resetDemoData());
-    }
+
 
     const clearAllBtn = document.getElementById('btn-clear-all-data');
     if (clearAllBtn) {
@@ -137,15 +134,19 @@ const SettingsManager = {
     reader.readAsText(file);
   },
 
-  resetDemoData() {
-    if (confirm('Are you sure you want to reset all data back to Gupta Library demo dataset? Any custom entries will be restored to initial state.')) {
-      window.appState.resetToDefault();
-      window.location.reload();
-    }
-  },
 
-  clearAllData() {
+
+  async clearAllData() {
     if (confirm('⚠️ Are you sure you want to clear ALL students, payment records, and vacate all seats for a fresh start? This will set all active students, collections, and dues to 0.')) {
+      if (window.SupabaseManager && window.SupabaseManager.client && window.SupabaseManager.isConnected) {
+        try {
+          await window.SupabaseManager.client.from('members').delete().neq('id', '');
+          await window.SupabaseManager.client.from('transactions').delete().neq('receipt_no', '');
+          await window.SupabaseManager.client.from('seats').update({ status: 'Vacant', student_id: null, student_name: null, shift: null }).neq('id', '');
+        } catch (e) {
+          console.warn('Could not clear Supabase tables:', e);
+        }
+      }
       window.appState.clearAllData();
       window.App.showToast('All records cleared for a fresh start.', 'info');
       window.location.reload();
