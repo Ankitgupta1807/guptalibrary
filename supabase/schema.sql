@@ -1,19 +1,32 @@
 -- ============================================================================
--- GUPTA LIBRARY - SUPABASE AUTH & RLS SCHEMA + 94 SEATS CONFIGURATION
--- Ground Floor: 44 Seats (G1 to G44)
--- First Floor: 50 Seats (A1 to A50)
+-- GUPTA LIBRARY - SUPABASE POSTGRESQL COMPLETE SCHEMA & CLEANUP
 -- Location: Sasamusa, Gopalganj, Bihar - 841505
+-- Email: guptalibraryy@gmail.com
 -- ============================================================================
 
--- 1. Drop conflicting triggers from auth.users
-DROP TRIGGER IF EXISTS on_auth_user_created ON auth.users;
-DROP FUNCTION IF EXISTS public.handle_new_auth_user();
+-- 1. Drop ALL conflicting triggers from auth.users
+DO $$
+DECLARE
+    trg_record RECORD;
+BEGIN
+    FOR trg_record IN 
+        SELECT trigger_name 
+        FROM information_schema.triggers 
+        WHERE event_object_schema = 'auth' AND event_object_table = 'users'
+    LOOP
+        EXECUTE 'DROP TRIGGER IF EXISTS ' || quote_ident(trg_record.trigger_name) || ' ON auth.users CASCADE;';
+    END LOOP;
+END $$;
 
--- 2. Clean up any corrupted direct-SQL auth entries
-DELETE FROM auth.identities WHERE identity_data->>'email' = 'admin@guptalibrary.com';
-DELETE FROM auth.users WHERE email = 'admin@guptalibrary.com';
+-- Drop legacy trigger functions
+DROP FUNCTION IF EXISTS public.handle_new_auth_user() CASCADE;
+DROP FUNCTION IF EXISTS public.handle_auth_user() CASCADE;
+DROP FUNCTION IF EXISTS public.on_auth_user_created() CASCADE;
+DROP FUNCTION IF EXISTS public.create_user_profile() CASCADE;
+DROP FUNCTION IF EXISTS public.handle_new_user() CASCADE;
+DROP FUNCTION IF EXISTS public.sync_user_profile() CASCADE;
 
--- 3. Create Admin Users Table
+-- 2. Create Admin Users Table
 CREATE TABLE IF NOT EXISTS public.admin_users (
     id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
     user_id UUID,
@@ -24,14 +37,14 @@ CREATE TABLE IF NOT EXISTS public.admin_users (
     created_by UUID
 );
 
--- 4. Pre-Authorize Master Admin Emails
+-- 3. Pre-Authorize Master Admin Emails
 INSERT INTO public.admin_users (name, email, role)
 VALUES 
   ('Ankit Gupta', 'admin@guptalibrary.com', 'admin'),
   ('Ankit Gupta', 'guptaankit8789@gmail.com', 'admin')
 ON CONFLICT (email) DO UPDATE SET role = 'admin';
 
--- 5. Helper Function: is_admin
+-- 4. Helper Function: is_admin
 CREATE OR REPLACE FUNCTION public.is_admin()
 RETURNS BOOLEAN
 LANGUAGE sql
@@ -45,7 +58,7 @@ AS $$
     );
 $$;
 
--- 6. Create Main Library Tables
+-- 5. Create Main Library Tables
 CREATE TABLE IF NOT EXISTS public.seats (
     id VARCHAR(50) PRIMARY KEY,
     hall VARCHAR(100) NOT NULL,
@@ -53,7 +66,8 @@ CREATE TABLE IF NOT EXISTS public.seats (
     status VARCHAR(50) NOT NULL DEFAULT 'Vacant',
     student_id VARCHAR(50),
     student_name VARCHAR(255),
-    shift VARCHAR(100)
+    shift VARCHAR(100),
+    updated_at TIMESTAMPTZ DEFAULT NOW()
 );
 
 CREATE TABLE IF NOT EXISTS public.members (
@@ -72,7 +86,8 @@ CREATE TABLE IF NOT EXISTS public.members (
     valid_till DATE,
     status VARCHAR(50) DEFAULT 'Active',
     dues NUMERIC(10,2) DEFAULT 0,
-    avatar_color VARCHAR(50)
+    avatar_color VARCHAR(50),
+    updated_at TIMESTAMPTZ DEFAULT NOW()
 );
 
 CREATE TABLE IF NOT EXISTS public.transactions (
@@ -89,7 +104,21 @@ CREATE TABLE IF NOT EXISTS public.transactions (
     period VARCHAR(100),
     collected_by VARCHAR(255),
     status VARCHAR(50) DEFAULT 'Paid',
-    remarks TEXT
+    remarks TEXT,
+    created_at TIMESTAMPTZ DEFAULT NOW()
+);
+
+CREATE TABLE IF NOT EXISTS public.books (
+    id VARCHAR(50) PRIMARY KEY,
+    title VARCHAR(255) NOT NULL,
+    author VARCHAR(255) NOT NULL,
+    category VARCHAR(100) NOT NULL,
+    isbn VARCHAR(100),
+    shelf VARCHAR(100),
+    total_copies INT DEFAULT 1,
+    available_copies INT DEFAULT 1,
+    status VARCHAR(50) DEFAULT 'Available',
+    created_at TIMESTAMPTZ DEFAULT NOW()
 );
 
 CREATE TABLE IF NOT EXISTS public.library_settings (
@@ -104,11 +133,17 @@ CREATE TABLE IF NOT EXISTS public.library_settings (
     receipt_footer_note TEXT
 );
 
--- 7. Row Level Security
+-- Insert default library settings if missing
+INSERT INTO public.library_settings (id, name, address, email, phone, monthly_plan_fullday, monthly_plan_shift, receipt_footer_note)
+VALUES (1, 'Gupta Library', 'Sasamusa, Gopalganj, Bihar - 841505', 'guptalibraryy@gmail.com', '+91 94312 88990', 800, 500, 'Thank you for studying at Gupta Library. Silence is required in reading halls.')
+ON CONFLICT (id) DO NOTHING;
+
+-- 6. Row Level Security
 ALTER TABLE public.library_settings ENABLE ROW LEVEL SECURITY;
 ALTER TABLE public.seats ENABLE ROW LEVEL SECURITY;
 ALTER TABLE public.members ENABLE ROW LEVEL SECURITY;
 ALTER TABLE public.transactions ENABLE ROW LEVEL SECURITY;
+ALTER TABLE public.books ENABLE ROW LEVEL SECURITY;
 ALTER TABLE public.admin_users ENABLE ROW LEVEL SECURITY;
 
 -- Drop all old policies
@@ -116,6 +151,7 @@ DROP POLICY IF EXISTS "Admin only library_settings" ON public.library_settings;
 DROP POLICY IF EXISTS "Admin only seats" ON public.seats;
 DROP POLICY IF EXISTS "Admin only members" ON public.members;
 DROP POLICY IF EXISTS "Admin only transactions" ON public.transactions;
+DROP POLICY IF EXISTS "Admin only books" ON public.books;
 DROP POLICY IF EXISTS "Admin only admin_users" ON public.admin_users;
 
 -- Admin-Only RLS Policies
@@ -123,9 +159,10 @@ CREATE POLICY "Admin only library_settings" ON public.library_settings FOR ALL T
 CREATE POLICY "Admin only seats" ON public.seats FOR ALL TO authenticated USING (true) WITH CHECK (true);
 CREATE POLICY "Admin only members" ON public.members FOR ALL TO authenticated USING (true) WITH CHECK (true);
 CREATE POLICY "Admin only transactions" ON public.transactions FOR ALL TO authenticated USING (true) WITH CHECK (true);
+CREATE POLICY "Admin only books" ON public.books FOR ALL TO authenticated USING (true) WITH CHECK (true);
 CREATE POLICY "Admin only admin_users" ON public.admin_users FOR ALL TO authenticated USING (true) WITH CHECK (true);
 
--- 8. Seed 94 Seats (Ground Floor: G1-G44, First Floor: A1-A50)
+-- 7. Seed 94 Seats (Ground Floor: G1-G44, First Floor: A1-A50)
 DO $$
 DECLARE
     i INT;

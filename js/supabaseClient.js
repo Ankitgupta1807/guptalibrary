@@ -18,6 +18,40 @@ const SupabaseManager = {
     return url.replace(/\/+$/, '');
   },
 
+  getClient() {
+    if (!this.client) {
+      this.init();
+    }
+    return this.client;
+  },
+
+  async ensureSupabaseLoaded() {
+    if (window.supabase) {
+      this.init();
+      return true;
+    }
+    return new Promise((resolve) => {
+      const script = document.createElement('script');
+      script.src = 'https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2';
+      script.onload = () => {
+        this.init();
+        resolve(true);
+      };
+      script.onerror = () => {
+        // Try fallback unpkg CDN
+        const fallbackScript = document.createElement('script');
+        fallbackScript.src = 'https://unpkg.com/@supabase/supabase-js@2/dist/umd/supabase.js';
+        fallbackScript.onload = () => {
+          this.init();
+          resolve(true);
+        };
+        fallbackScript.onerror = () => resolve(false);
+        document.head.appendChild(fallbackScript);
+      };
+      document.head.appendChild(script);
+    });
+  },
+
   init() {
     const config = this.getConfig();
     const cleanUrl = this.normalizeUrl(config.url);
@@ -31,6 +65,8 @@ const SupabaseManager = {
       } catch (err) {
         console.warn('Could not initialize Supabase client:', err);
       }
+    } else if (!window.supabase) {
+      this.ensureSupabaseLoaded();
     }
     this.updateStatusBadge();
   },
