@@ -127,6 +127,10 @@ const App = {
     if (viewId === 'admins' && window.AdminManager) {
       window.AdminManager.render();
     }
+    if (viewId === 'settings') {
+      if (window.SettingsManager) window.SettingsManager.populateForm();
+      if (window.SupabaseManager) window.SupabaseManager.updateStatusBadge();
+    }
   },
 
   setupTheme() {

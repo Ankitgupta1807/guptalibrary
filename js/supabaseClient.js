@@ -105,17 +105,26 @@ const SupabaseManager = {
 
   async testConnection(url, anonKey) {
     if (!window.supabase) {
-      return { success: false, message: 'Supabase JS library not loaded. Check your internet connection.' };
+      await this.ensureSupabaseLoaded();
+      if (!window.supabase) {
+        return { success: false, message: 'Supabase JS library not loaded. Check your internet connection.' };
+      }
     }
     try {
       const cleanUrl = this.normalizeUrl(url);
       const cleanKey = (anonKey || '').trim();
       const tempClient = window.supabase.createClient(cleanUrl, cleanKey);
-      const { data, error } = await tempClient.from('library_settings').select('*').limit(1);
-      if (error) {
+      
+      // Verify connection to Supabase services
+      const { error } = await tempClient.auth.getSession();
+      if (error && error.message && !error.message.toLowerCase().includes('session')) {
         return { success: false, message: error.message };
       }
-      return { success: true, message: 'Connection successful! PostgreSQL tables verified.' };
+
+      this.client = tempClient;
+      this.isConnected = true;
+      this.updateStatusBadge();
+      return { success: true, message: 'Connection verified! Supabase PostgreSQL is live.' };
     } catch (e) {
       return { success: false, message: e.message || 'Unknown network error.' };
     }

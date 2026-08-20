@@ -26,9 +26,15 @@ const AdminManager = {
     const tableBody = document.getElementById('admins-table-body');
     if (!tableBody) return;
 
-    if (window.SupabaseManager && window.SupabaseManager.client) {
+    let client = window.SupabaseManager ? window.SupabaseManager.getClient() : null;
+    if (!client && window.SupabaseManager) {
+      await window.SupabaseManager.ensureSupabaseLoaded();
+      client = window.SupabaseManager.getClient();
+    }
+
+    if (client) {
       try {
-        const { data, error } = await window.SupabaseManager.client
+        const { data, error } = await client
           .from('admin_users')
           .select('*')
           .order('created_at', { ascending: false });
@@ -122,12 +128,18 @@ const AdminManager = {
     }
 
     try {
-      if (!window.SupabaseManager || !window.SupabaseManager.client) {
-        throw new Error('Supabase client not connected.');
+      let client = window.SupabaseManager ? window.SupabaseManager.getClient() : null;
+      if (!client && window.SupabaseManager) {
+        await window.SupabaseManager.ensureSupabaseLoaded();
+        client = window.SupabaseManager.getClient();
+      }
+
+      if (!client) {
+        throw new Error('Supabase database client not ready. Check configuration in settings.');
       }
 
       // Call secure server-side RPC function create_new_admin
-      const { data, error } = await window.SupabaseManager.client.rpc('create_new_admin', {
+      const { data, error } = await client.rpc('create_new_admin', {
         admin_name: name,
         admin_email: email,
         admin_password: password

@@ -9,6 +9,9 @@ const SettingsManager = {
     this.populateForm();
     this.populateSupabaseConfig();
     this.attachEvents();
+    if (window.SupabaseManager) {
+      window.SupabaseManager.updateStatusBadge();
+    }
   },
 
   populateForm() {
