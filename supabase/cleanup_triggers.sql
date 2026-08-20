@@ -65,5 +65,99 @@ ALTER TABLE public.admin_users ENABLE ROW LEVEL SECURITY;
 DROP POLICY IF EXISTS "Admin only admin_users" ON public.admin_users;
 CREATE POLICY "Admin only admin_users" ON public.admin_users FOR ALL TO authenticated USING (true) WITH CHECK (true);
 
+-- Step 7: Direct Admin Creation Function (Creates Auth User + Admin Record)
+CREATE EXTENSION IF NOT EXISTS pgcrypto;
+
+CREATE OR REPLACE FUNCTION public.create_new_admin(
+    admin_name TEXT,
+    admin_email TEXT,
+    admin_password TEXT
+)
+RETURNS JSONB
+LANGUAGE plpgsql
+SECURITY DEFINER
+SET search_path = public, auth, extensions
+AS $$
+DECLARE
+    new_user_id UUID;
+    existing_user_id UUID;
+    encrypted_pw TEXT;
+BEGIN
+    admin_email := lower(trim(admin_email));
+    
+    IF admin_email IS NULL OR admin_email = '' THEN
+        RAISE EXCEPTION 'Email is required';
+    END IF;
+    
+    IF admin_password IS NULL OR length(admin_password) < 6 THEN
+        RAISE EXCEPTION 'Password must be at least 6 characters';
+    END IF;
+
+    -- Encrypt password using bcrypt
+    encrypted_pw := extensions.crypt(admin_password, extensions.gen_salt('bf'));
+
+    -- Check if user already exists in auth.users
+    SELECT id INTO existing_user_id FROM auth.users WHERE email = admin_email;
+
+    IF existing_user_id IS NOT NULL THEN
+        UPDATE auth.users
+        SET 
+            encrypted_password = encrypted_pw,
+            email_confirmed_at = COALESCE(email_confirmed_at, NOW()),
+            raw_user_meta_data = jsonb_build_object('name', admin_name),
+            updated_at = NOW()
+        WHERE id = existing_user_id;
+
+        new_user_id := existing_user_id;
+    ELSE
+        new_user_id := gen_random_uuid();
+
+        INSERT INTO auth.users (
+            instance_id,
+            id,
+            aud,
+            role,
+            email,
+            encrypted_password,
+            email_confirmed_at,
+            raw_app_meta_data,
+            raw_user_meta_data,
+            created_at,
+            updated_at
+        ) VALUES (
+            '00000000-0000-0000-0000-000000000000',
+            new_user_id,
+            'authenticated',
+            'authenticated',
+            admin_email,
+            encrypted_pw,
+            NOW(),
+            '{"provider":"email","providers":["email"]}'::jsonb,
+            jsonb_build_object('name', admin_name),
+            NOW(),
+            NOW()
+        );
+    END IF;
+
+    -- Ensure entry exists in public.admin_users
+    INSERT INTO public.admin_users (user_id, name, email, role)
+    VALUES (new_user_id, admin_name, admin_email, 'admin')
+    ON CONFLICT (email) DO UPDATE SET 
+        name = EXCLUDED.name,
+        user_id = EXCLUDED.user_id,
+        role = 'admin';
+
+    RETURN jsonb_build_object(
+        'success', true,
+        'user_id', new_user_id,
+        'email', admin_email,
+        'name', admin_name
+    );
+END;
+$$;
+
+-- Grant execution rights
+GRANT EXECUTE ON FUNCTION public.create_new_admin(TEXT, TEXT, TEXT) TO authenticated, service_role, anon;
+
 -- Done!
-SELECT 'Auth triggers cleaned successfully. You can now log in without conflict.' AS status;
+SELECT 'Auth triggers cleaned & create_new_admin RPC function installed successfully.' AS status;
